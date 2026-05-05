@@ -19,7 +19,7 @@ export default async function SettingsPage() {
       <div className="text-[11px] uppercase tracking-[0.16em] text-muted">Settings</div>
       <h1 className="display text-[44px] leading-[1.05] mt-2">Bring your own keys</h1>
       <p className="text-[15px] text-muted mt-3 max-w-[56ch]">
-        Keys are stored once in D1 and used to call providers from the edge on your behalf. Leave a field blank to remove the key.
+        Keys are stored in D1 and used server-side on the edge. Leave a field blank to remove a key.
       </p>
       <SettingsForm providers={providers} initial={publicSettings(s)} />
     </Chrome>

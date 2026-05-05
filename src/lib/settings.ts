@@ -5,6 +5,7 @@ export interface ProviderKeys {
   gemini?: string;
   moonshot?: string;
   openrouter?: string;
+  openai?: string; // used for image generation (gpt-image-1)
 }
 
 export interface AppSettings {
@@ -31,7 +32,9 @@ export async function readSettings(): Promise<AppSettings> {
 
 export async function writeSettings(next: AppSettings): Promise<void> {
   await db()
-    .prepare("INSERT INTO settings (key, value) VALUES ('app', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = unixepoch()")
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES ('app', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = unixepoch()",
+    )
     .bind(JSON.stringify(next))
     .run();
 }
@@ -41,10 +44,11 @@ export function publicSettings(s: AppSettings) {
     defaultProvider: s.defaultProvider,
     defaultModel: s.defaultModel,
     keysSet: {
+      moonshot: !!s.keys.moonshot,
       anthropic: !!s.keys.anthropic,
       gemini: !!s.keys.gemini,
-      moonshot: !!s.keys.moonshot,
       openrouter: !!s.keys.openrouter,
+      openai: !!s.keys.openai,
     },
   };
 }

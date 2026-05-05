@@ -23,6 +23,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   const skills = await db()
     .prepare("SELECT id, name FROM skills ORDER BY preloaded DESC, name ASC")
     .all();
+  const designSystems = await db()
+    .prepare("SELECT id, name FROM design_systems ORDER BY preloaded DESC, name ASC")
+    .all();
 
   const providers = PROVIDER_ORDER.map((p) => ({
     id: p,
@@ -37,6 +40,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
         messages={(messages.results ?? []) as any}
         memory={(memory.results ?? []) as any}
         skills={(skills.results ?? []) as any}
+        designSystems={(designSystems.results ?? []) as any}
         providers={providers}
       />
     </Chrome>

@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function NewProject({ skills }: { skills: { id: string; name: string }[] }) {
+interface Props {
+  skills: { id: string; name: string }[];
+  designSystems: { id: string; name: string }[];
+}
+
+export function NewProject({ skills, designSystems }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [brief, setBrief] = useState("");
   const [skill, setSkill] = useState<string>(skills[0]?.id || "");
+  const [ds, setDs] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
   async function onCreate(e: React.FormEvent) {
@@ -16,7 +22,7 @@ export function NewProject({ skills }: { skills: { id: string; name: string }[] 
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, brief, skill_id: skill || null }),
+      body: JSON.stringify({ name, brief, skill_id: skill || null, design_system_id: ds || null }),
     });
     const j = await res.json();
     setBusy(false);
@@ -31,17 +37,28 @@ export function NewProject({ skills }: { skills: { id: string; name: string }[] 
       </div>
       <div>
         <label className="label">Brief</label>
-        <textarea className="field min-h-[110px]" value={brief} onChange={(e) => setBrief(e.target.value)}
-          placeholder="What are you making, for whom, and what tone?" />
+        <textarea
+          className="field min-h-[110px]"
+          value={brief}
+          onChange={(e) => setBrief(e.target.value)}
+          placeholder="What are you making, for whom, and what tone?"
+        />
       </div>
-      <div>
-        <label className="label">Skill</label>
-        <select className="field" value={skill} onChange={(e) => setSkill(e.target.value)}>
-          <option value="">No skill</option>
-          {skills.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="label">Skill</label>
+          <select className="field" value={skill} onChange={(e) => setSkill(e.target.value)}>
+            <option value="">No skill</option>
+            {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="label">Design system</label>
+          <select className="field" value={ds} onChange={(e) => setDs(e.target.value)}>
+            <option value="">None</option>
+            {designSystems.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+        </div>
       </div>
       <button className="btn" disabled={busy || !name.trim()}>{busy ? "Creating…" : "Create project"}</button>
     </form>

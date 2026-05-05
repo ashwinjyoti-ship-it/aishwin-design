@@ -3,10 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
-interface Project { id: string; name: string; brief: string | null; skill_id: string | null; provider: string; model: string }
+interface Project {
+  id: string; name: string; brief: string | null;
+  skill_id: string | null; design_system_id: string | null;
+  provider: string; model: string;
+}
 interface Message { id: string; role: "user" | "assistant" | "system"; content: string; artifact_key: string | null; created_at: number }
 interface Memory { id: string; body: string; pinned: number; updated_at: number }
 interface Skill { id: string; name: string }
+interface DesignSystem { id: string; name: string }
 interface ProviderSpec { id: string; label: string; models: string[] }
 
 interface Props {
@@ -14,10 +19,11 @@ interface Props {
   messages: Message[];
   memory: Memory[];
   skills: Skill[];
+  designSystems: DesignSystem[];
   providers: ProviderSpec[];
 }
 
-export function ProjectCanvas({ project, messages: initialMsgs, memory: initialMem, skills, providers }: Props) {
+export function ProjectCanvas({ project, messages: initialMsgs, memory: initialMem, skills, designSystems, providers }: Props) {
   const router = useRouter();
   const [msgs, setMsgs] = useState<Message[]>(initialMsgs);
   const [memory, setMemory] = useState<Memory[]>(initialMem);
@@ -25,6 +31,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [showMemory, setShowMemory] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const lastArtifact = [...msgs].reverse().find((m) => m.artifact_key)?.artifact_key ?? null;
@@ -48,7 +55,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
       const text = await res.text();
       setMsgs((m) => [...m.filter((x) => x.id !== "tmp_u"),
         { id: "tmp_u", role: "user", content, artifact_key: null, created_at: Date.now() / 1000 },
-        { id: "tmp_e", role: "assistant", content: `Error: ${text}`, artifact_key: null, created_at: Date.now() / 1000 }]);
+        { id: "err_" + Date.now(), role: "assistant", content: `Error: ${text}`, artifact_key: null, created_at: Date.now() / 1000 }]);
       setBusy(false); return;
     }
     const reader = res.body.getReader();
@@ -75,6 +82,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
         } else if (evt === "done") {
           setMsgs((m) => [...m, { id: data.id, role: "assistant", content: assembled, artifact_key: data.artifact_id, created_at: Date.now() / 1000 }]);
           setStreaming("");
+          if (data.artifact_id) setIframeKey((k) => k + 1);
         } else if (evt === "error") {
           setMsgs((m) => [...m, { id: "err_" + Date.now(), role: "assistant", content: `Error: ${data.message}`, artifact_key: null, created_at: Date.now() / 1000 }]);
           setStreaming("");
@@ -121,37 +129,44 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   return (
     <div className="-mt-12 -mx-8">
       <div className="border-b rule">
-        <div className="mx-auto max-w-[1280px] px-8 h-12 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => history.back()} className="text-[12px] text-muted hover:text-ink">&larr; Projects</button>
-            <span className="text-[12px] text-muted">/</span>
-            <input
-              defaultValue={project.name}
-              onBlur={(e) => e.target.value !== project.name && patchProject({ name: e.target.value })}
-              className="display text-[17px] bg-transparent outline-none focus:underline underline-offset-4 decoration-rule"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <select className="field h-8 py-0 text-[12px] w-[150px]"
-              value={project.skill_id ?? ""}
-              onChange={(e) => patchProject({ skill_id: (e.target.value || null) as any })}>
-              <option value="">No skill</option>
-              {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            <select className="field h-8 py-0 text-[12px] w-[120px]"
-              value={project.provider}
-              onChange={(e) => patchProject({ provider: e.target.value, model: providers.find((p) => p.id === e.target.value)?.models[0] })}>
-              {providers.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-            </select>
-            <select className="field h-8 py-0 text-[12px] w-[180px]"
-              value={project.model}
-              onChange={(e) => patchProject({ model: e.target.value })}>
-              {activeProviderModels.map((m) => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <button onClick={() => setShowMemory((s) => !s)} className="btn-ghost h-8 px-3 text-[12px]">
-              Memory · {memory.length}
-            </button>
-          </div>
+        <div className="mx-auto max-w-[1280px] px-8 h-12 flex items-center gap-3 overflow-x-auto">
+          <button onClick={() => history.back()} className="text-[12px] text-muted hover:text-ink shrink-0">&larr;</button>
+          <input
+            defaultValue={project.name}
+            onBlur={(e) => e.target.value !== project.name && patchProject({ name: e.target.value })}
+            className="display text-[17px] bg-transparent outline-none focus:underline underline-offset-4 decoration-rule min-w-0 shrink-0"
+          />
+          <span className="text-muted text-[12px] shrink-0">/</span>
+
+          <select className="field h-8 py-0 text-[12px] w-[130px] shrink-0"
+            value={project.skill_id ?? ""}
+            onChange={(e) => patchProject({ skill_id: (e.target.value || null) as any })}>
+            <option value="">No skill</option>
+            {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+
+          <select className="field h-8 py-0 text-[12px] w-[130px] shrink-0"
+            value={project.design_system_id ?? ""}
+            onChange={(e) => patchProject({ design_system_id: (e.target.value || null) as any })}>
+            <option value="">No design system</option>
+            {designSystems.map((ds) => <option key={ds.id} value={ds.id}>{ds.name}</option>)}
+          </select>
+
+          <select className="field h-8 py-0 text-[12px] w-[110px] shrink-0"
+            value={project.provider}
+            onChange={(e) => patchProject({ provider: e.target.value, model: providers.find((p) => p.id === e.target.value)?.models[0] })}>
+            {providers.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+
+          <select className="field h-8 py-0 text-[12px] w-[160px] shrink-0"
+            value={project.model}
+            onChange={(e) => patchProject({ model: e.target.value })}>
+            {activeProviderModels.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+
+          <button onClick={() => setShowMemory((s) => !s)} className="btn-ghost h-8 px-3 text-[12px] shrink-0 ml-auto">
+            Memory · {memory.length}
+          </button>
         </div>
       </div>
 
@@ -159,13 +174,11 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
         <section className="col-span-5 border-r rule flex flex-col">
           <div ref={scrollerRef} className="flex-1 overflow-y-auto px-8 py-8 space-y-7">
             {msgs.length === 0 && (
-              <div className="text-muted text-[14px] max-w-[36ch]">
-                Tell the agent what you&rsquo;re making. It will ask one question if it needs to, then ship a single-file artifact.
+              <div className="text-muted text-[14px] max-w-[36ch] leading-relaxed">
+                Tell the agent what you&rsquo;re making. It will ask one clarifying question if needed, then ship a single-file HTML artifact.
               </div>
             )}
-            {msgs.map((m) => (
-              <MessageView key={m.id} m={m} />
-            ))}
+            {msgs.map((m) => <MessageView key={m.id} m={m} />)}
             {streaming && (
               <div>
                 <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-2">Assistant</div>
@@ -183,20 +196,23 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
             />
             <div className="flex items-center justify-between">
               <span className="text-[11px] text-muted">{busy ? "Streaming…" : "Idle"}</span>
-              <button onClick={send} disabled={busy || !input.trim()} className="btn h-9 px-4 text-[13px]">Send</button>
+              <button onClick={send} disabled={busy || !input.trim()} className="btn h-9 px-4 text-[13px]">
+                Send
+              </button>
             </div>
           </div>
         </section>
-        <section className="col-span-7 bg-paper relative">
+
+        <section className="col-span-7 bg-paper relative flex flex-col">
           {lastArtifact ? (
             <iframe
-              key={lastArtifact}
+              key={`${lastArtifact}-${iframeKey}`}
               src={`/api/artifacts/${lastArtifact}`}
-              sandbox="allow-same-origin"
-              className="w-full h-full bg-white"
+              sandbox="allow-same-origin allow-scripts"
+              className="w-full flex-1 bg-white"
             />
           ) : (
-            <div className="grid place-items-center h-full text-muted text-[14px]">
+            <div className="grid place-items-center flex-1 text-muted text-[14px]">
               The latest HTML artifact appears here.
             </div>
           )}
@@ -217,8 +233,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
 
 function MessageView({ m }: { m: Message }) {
   const isUser = m.role === "user";
-  const stripHtml = (s: string) => s.replace(/```html[\s\S]*?```/gi, "").trim();
-  const displayed = isUser ? m.content : stripHtml(m.content);
+  const displayed = isUser ? m.content : m.content.replace(/```html[\s\S]*?```/gi, "").trim();
   return (
     <div>
       <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-2">{isUser ? "You" : "Assistant"}</div>
@@ -227,7 +242,7 @@ function MessageView({ m }: { m: Message }) {
       </div>
       {m.artifact_key && (
         <a href={`/api/artifacts/${m.artifact_key}`} target="_blank" className="inline-block mt-2 text-[12px] text-muted hover:text-ink underline underline-offset-4 decoration-rule">
-          Open artifact in new tab
+          Open in new tab
         </a>
       )}
     </div>
@@ -248,16 +263,20 @@ function MemoryDrawer({ memory, onAdd, onDelete, onClose }: {
         </div>
         <div className="px-6 py-5 border-b rule">
           <textarea
-            placeholder="A durable note: the brand tone, a constraint, a decision."
+            placeholder="A durable note: brand tone, constraint, decision."
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             className="field min-h-[80px] mb-3"
           />
-          <button className="btn-ghost h-8 px-3 text-[12px]" onClick={() => { onAdd(draft); setDraft(""); }}>Add note</button>
+          <button className="btn-ghost h-8 px-3 text-[12px]" onClick={() => { onAdd(draft); setDraft(""); }}>
+            Add note
+          </button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {memory.length === 0 ? (
-            <div className="px-6 py-8 text-[13px] text-muted">No memory yet. Notes here are appended to every prompt.</div>
+            <div className="px-6 py-8 text-[13px] text-muted">
+              No memory yet. Notes here are appended to every prompt in this project.
+            </div>
           ) : (
             <ul>
               {memory.map((m) => (

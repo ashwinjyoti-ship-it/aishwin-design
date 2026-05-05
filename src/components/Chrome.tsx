@@ -1,7 +1,9 @@
 import Link from "next/link";
 
-export function Chrome({ children, active }: { children: React.ReactNode; active?: "projects" | "skills" | "settings" }) {
-  const link = (href: string, label: string, key: string) => (
+type Active = "projects" | "skills" | "design-systems" | "settings";
+
+export function Chrome({ children, active }: { children: React.ReactNode; active?: Active }) {
+  const link = (href: string, label: string, key: Active) => (
     <Link
       href={href}
       className={
@@ -22,9 +24,12 @@ export function Chrome({ children, active }: { children: React.ReactNode; active
           <nav className="flex items-center gap-7">
             {link("/", "Projects", "projects")}
             {link("/skills", "Skills", "skills")}
+            {link("/design-systems", "Design systems", "design-systems")}
             {link("/settings", "Settings", "settings")}
             <form action="/api/auth/logout" method="post">
-              <button className="text-[13px] tracking-tightish text-muted hover:text-ink" type="submit">Sign out</button>
+              <button className="text-[13px] tracking-tightish text-muted hover:text-ink" type="submit">
+                Sign out
+              </button>
             </form>
           </nav>
         </div>
@@ -33,7 +38,7 @@ export function Chrome({ children, active }: { children: React.ReactNode; active
       <footer className="border-t rule mt-24">
         <div className="mx-auto max-w-[1280px] px-8 h-12 flex items-center justify-between text-[12px] text-muted">
           <span className="tracking-tightish">A small studio for designing with agents.</span>
-          <span className="tracking-[0.14em] uppercase">v0.1</span>
+          <span className="tracking-[0.14em] uppercase">v0.2</span>
         </div>
       </footer>
     </div>
