@@ -1,12 +1,14 @@
 import { NextRequest } from "next/server";
-import { db } from "@/lib/env";
+import { db, env } from "@/lib/env";
 import { isAuthed } from "@/lib/auth";
 import { id as makeId } from "@/lib/id";
 import { readSettings } from "@/lib/settings";
 import { getProvider } from "@/lib/providers";
 import type { ChatMessage } from "@/lib/providers";
 import { buildSystemPrompt, extractHtml } from "@/lib/prompts";
-import { env } from "@/lib/env";
+import { sha256 } from "@/lib/hash";
+import { kvGet, kvPut } from "@/lib/kv";
+import { r2Key, r2Put } from "@/lib/r2";
 
 export const runtime = "edge";
 
@@ -21,7 +23,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const project = await db()
     .prepare("SELECT * FROM projects WHERE id = ?")
     .bind(pid)
-    .first<{ id: string; name: string; brief: string | null; skill_id: string | null; provider: string; model: string }>();
+    .first<{
+      id: string; name: string; brief: string | null;
+      skill_id: string | null; design_system_id: string | null;
+      provider: string; model: string;
+    }>();
   if (!project) return new Response("not found", { status: 404 });
 
   const settings = await readSettings();
@@ -35,10 +41,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const skill = project.skill_id
     ? await db().prepare("SELECT body FROM skills WHERE id = ?").bind(project.skill_id).first<{ body: string }>()
     : null;
+
+  const designSystem = project.design_system_id
+    ? await db().prepare("SELECT body FROM design_systems WHERE id = ?").bind(project.design_system_id).first<{ body: string }>()
+    : null;
+
   const memoryRows = await db()
     .prepare("SELECT body FROM memory WHERE project_id = ? ORDER BY pinned DESC, updated_at DESC LIMIT 30")
     .bind(pid)
     .all<{ body: string }>();
+
   const history = await db()
     .prepare("SELECT role, content FROM messages WHERE project_id = ? ORDER BY created_at ASC")
     .bind(pid)
@@ -58,9 +70,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const system = buildSystemPrompt({
     appName: env().APP_NAME || "Aishwin Design",
     skillBody: skill?.body,
+    designSystemBody: designSystem?.body,
     memory: (memoryRows.results ?? []).map((m) => m.body),
     brief: project.brief,
+    projectId: pid,
   });
+
+  // KV cache key: hash of system + full message thread
+  const cacheKey = `llm:${await sha256(system + JSON.stringify(messages))}`;
 
   const enc = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -69,23 +86,58 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       const send = (event: string, data: unknown) => {
         controller.enqueue(enc.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
       };
+
       try {
         send("user_message", { id: userMsgId, content });
-        for await (const delta of provider.stream({ apiKey, model, system, messages })) {
-          assembled += delta;
-          send("delta", delta);
+
+        // Check KV cache for identical prompts
+        const cached = await kvGet(cacheKey);
+        if (cached) {
+          assembled = cached;
+          // Stream the cached response in one chunk
+          send("delta", cached);
+        } else {
+          for await (const delta of provider.stream({ apiKey, model, system, messages })) {
+            assembled += delta;
+            send("delta", delta);
+          }
+          // Cache the response in KV (skip if very long / streaming-only)
+          if (assembled.length < 200_000) {
+            await kvPut(cacheKey, assembled).catch(() => {});
+          }
         }
 
         const asstId = makeId("msg");
         const html = extractHtml(assembled);
         let artifactId: string | null = null;
+
         if (html) {
           artifactId = makeId("art");
+          const htmlBytes = enc.encode(html);
+          const key = r2Key("artifact", artifactId);
+
+          // Try R2 first; fall back to D1 inline if R2 unavailable
+          let storedInR2 = false;
+          try {
+            await r2Put(key, html, "text/html");
+            storedInR2 = true;
+          } catch {}
+
           await db()
-            .prepare("INSERT INTO artifacts (id, project_id, message_id, kind, body) VALUES (?, ?, ?, 'html', ?)")
-            .bind(artifactId, pid, asstId, html)
+            .prepare(
+              "INSERT INTO artifacts (id, project_id, message_id, kind, r2_key, body_inline, size_bytes) VALUES (?, ?, ?, 'html', ?, ?, ?)",
+            )
+            .bind(
+              artifactId,
+              pid,
+              asstId,
+              storedInR2 ? key : null,
+              storedInR2 ? null : html,
+              htmlBytes.length,
+            )
             .run();
         }
+
         await db()
           .prepare("INSERT INTO messages (id, project_id, role, content, artifact_key) VALUES (?, ?, 'assistant', ?, ?)")
           .bind(asstId, pid, assembled, artifactId)

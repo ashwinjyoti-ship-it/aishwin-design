@@ -13,6 +13,8 @@ interface Props {
   };
 }
 
+const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 via OpenAI API" };
+
 export function SettingsForm({ providers, initial }: Props) {
   const [defaultProvider, setDefaultProvider] = useState(initial.defaultProvider);
   const [defaultModel, setDefaultModel] = useState(initial.defaultModel);
@@ -22,6 +24,9 @@ export function SettingsForm({ providers, initial }: Props) {
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const activeModels = providers.find((p) => p.id === defaultProvider)?.models ?? [];
+
+  function setKey(pid: string, val: string) { setKeys({ ...keys, [pid]: val }); }
+  function removeKey(pid: string) { setKeys({ ...keys, [pid]: "__clear__" }); setKeysSet({ ...keysSet, [pid]: false }); }
 
   async function save() {
     setSaving(true);
@@ -38,40 +43,40 @@ export function SettingsForm({ providers, initial }: Props) {
       body: JSON.stringify(payload),
     });
     const j = await res.json();
-    if (res.ok) {
-      setKeys({});
-      setKeysSet(j.settings.keysSet);
-      setSavedAt(Date.now());
-    }
+    if (res.ok) { setKeys({}); setKeysSet(j.settings.keysSet); setSavedAt(Date.now()); }
     setSaving(false);
   }
+
+  const allKeys = [...providers.map((p) => ({ id: p.id, label: p.label, hint: p.defaultModel })), IMAGE_PROVIDER];
 
   return (
     <div className="mt-10 grid grid-cols-12 gap-10">
       <section className="col-span-12 md:col-span-7">
-        <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-4">Provider keys</div>
+        <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-4">API keys</div>
         <ul className="border-t rule">
-          {providers.map((p) => (
+          {allKeys.map((p) => (
             <li key={p.id} className="border-b rule py-5 grid grid-cols-12 gap-4 items-center">
               <div className="col-span-4">
-                <div className="display text-[18px] text-ink">{p.label}</div>
-                <div className="text-[12px] text-muted mt-0.5">{p.defaultModel}</div>
+                <div className="display text-[17px] text-ink">{p.label}</div>
+                <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
+                {p.id === "openai" && (
+                  <div className="text-[11px] text-muted mt-1 leading-tight">For image generation only</div>
+                )}
               </div>
               <div className="col-span-6">
                 <input
                   type="password"
                   className="field"
-                  placeholder={keysSet[p.id] ? "•••••••••• key set — type to replace" : "Paste API key"}
-                  value={keys[p.id] === "__clear__" ? "" : keys[p.id] ?? ""}
-                  onChange={(e) => setKeys({ ...keys, [p.id]: e.target.value })}
+                  placeholder={keysSet[p.id] ? "•••••••••• set — type to replace" : "Paste API key"}
+                  value={keys[p.id] === "__clear__" ? "" : (keys[p.id] ?? "")}
+                  onChange={(e) => setKey(p.id, e.target.value)}
                 />
               </div>
               <div className="col-span-2 text-right">
                 {keysSet[p.id] && (
-                  <button
-                    onClick={() => { setKeys({ ...keys, [p.id]: "__clear__" }); setKeysSet({ ...keysSet, [p.id]: false }); }}
-                    className="text-[12px] text-muted hover:text-ink"
-                  >Remove</button>
+                  <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
+                    Remove
+                  </button>
                 )}
               </div>
             </li>
@@ -100,6 +105,14 @@ export function SettingsForm({ providers, initial }: Props) {
           <div className="pt-2 flex items-center gap-3">
             <button onClick={save} className="btn" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
             {savedAt && <span className="text-[12px] text-muted">saved</span>}
+          </div>
+          <div className="pt-4 border-t rule">
+            <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-3">Storage</div>
+            <div className="text-[13px] text-muted leading-relaxed space-y-1">
+              <div>Artifacts → R2 (HTML, with D1 fallback)</div>
+              <div>LLM responses → KV cache (7 days)</div>
+              <div>Images → R2 + KV cache</div>
+            </div>
           </div>
         </div>
       </section>
