@@ -1,0 +1,29 @@
+# Cloudflare Pages config for `aish-design`.
+# Bindings declared here are picked up by `wrangler pages dev` for local
+# development. For the live Pages project, the SAME bindings must also be
+# configured in the Cloudflare dashboard under Pages → aish-design → Settings.
+
+name = "aish-design"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[vars]
+APP_NAME = "Aishwin Design"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "aish-design"
+database_id = "REPLACE_WITH_YOUR_D1_ID"
+
+[[r2_buckets]]
+binding = "ARTIFACTS"
+bucket_name = "aish-design-artifacts"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_YOUR_KV_ID"
+
+# Secrets, set in the Cloudflare dashboard (Pages → aish-design → Settings → Environment variables → Encrypted):
+#   APP_PASSWORD       shared bearer to access the app
+#   SESSION_SECRET     random string used to sign session cookies

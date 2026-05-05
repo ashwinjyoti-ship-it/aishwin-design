@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  html, body { background: #FAFAF6; color: #171614; }
+  body {
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "ss01", "cv11";
+  }
+  ::selection { background: #171614; color: #FAFAF6; }
+  input, textarea, button { font: inherit; color: inherit; }
+  textarea { resize: none; }
+  hr { border-color: #E6E2D8; }
+  .rule { border-color: #E6E2D8; }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-4 h-10 border border-ink bg-ink text-paper text-sm tracking-tightish transition;
+  }
+  .btn:hover { background: #2a2622; }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 h-10 border border-rule bg-paper text-ink text-sm tracking-tightish hover:border-ink transition;
+  }
+  .field {
+    @apply w-full bg-paper border border-rule px-3 py-2 text-[15px] leading-tight focus:outline-none focus:border-ink transition;
+  }
+  .label {
+    @apply block text-[11px] uppercase tracking-[0.14em] text-muted mb-1.5;
+  }
+  .pill {
+    @apply inline-flex items-center h-6 px-2 border border-rule text-[11px] uppercase tracking-[0.12em] text-muted;
+  }
+  .display {
+    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
+    font-feature-settings: "ss01";
+    letter-spacing: -0.012em;
+  }
+}
