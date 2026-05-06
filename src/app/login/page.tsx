@@ -19,7 +19,12 @@ export default function LoginPage() {
       const params = new URLSearchParams(location.search);
       location.href = params.get("next") || "/";
     } else {
-      const j = await res.json().catch(() => ({}));
+      let j: { error?: string };
+      try {
+        j = await res.json();
+      } catch {
+        j = {};
+      }
       setErr(j.error || "Wrong password");
       setBusy(false);
     }
@@ -47,7 +52,7 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="text-[12px] text-muted mt-8 leading-relaxed">
-          Set <span className="font-mono">APP_PASSWORD</span> as a Cloudflare secret. There are no accounts &mdash; one shared key.
+          Set <span className="font-mono">APP_PASSWORD</span> as a Cloudflare secret. There are no accounts — one shared key.
         </p>
       </div>
     </div>
