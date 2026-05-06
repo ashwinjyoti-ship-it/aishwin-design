@@ -1,0 +1,9 @@
+import "@cloudflare/workers-types";
+
+declare global {
+  interface CloudflareEnv {
+    DB: D1Database;
+    APP_PASSWORD: string;
+    APP_NAME: string;
+  }
+}
