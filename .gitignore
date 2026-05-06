@@ -2,6 +2,7 @@ node_modules
 .next
 .open-next
 .wrangler
+.vercel
 .dev.vars
 .env*.local
 cloudflare-env.d.ts

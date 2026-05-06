@@ -24,7 +24,7 @@ export function NewProject({ skills, designSystems }: Props) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name, brief, skill_id: skill || null, design_system_id: ds || null }),
     });
-    const j = await res.json();
+    const j = await res.json() as any;
     setBusy(false);
     if (res.ok && j.id) router.push(`/projects/${j.id}`);
   }

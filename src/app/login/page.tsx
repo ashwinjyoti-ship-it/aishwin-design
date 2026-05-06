@@ -19,7 +19,7 @@ export default function LoginPage() {
       const params = new URLSearchParams(location.search);
       location.href = params.get("next") || "/";
     } else {
-      const j = await res.json().catch(() => ({}));
+      const j = await res.json().catch(() => ({})) as { error?: string };
       setErr(j.error || "Wrong password");
       setBusy(false);
     }
