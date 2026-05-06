@@ -47,11 +47,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Set up pnpm PATH
+      - name: Add pnpm global bin to PATH
         shell: bash
-        run: |
-          pnpm setup
-          echo "$(pnpm bin -g)" >> $GITHUB_PATH
+        run: echo "${PNPM_HOME}" >> $GITHUB_PATH
 
       - name: Build (next-on-pages)
         run: pnpm pages:build
