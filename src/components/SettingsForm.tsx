@@ -42,7 +42,7 @@ export function SettingsForm({ providers, initial }: Props) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const j = await res.json();
+    const j = await res.json() as any;
     if (res.ok) { setKeys({}); setKeysSet(j.settings.keysSet); setSavedAt(Date.now()); }
     setSaving(false);
   }

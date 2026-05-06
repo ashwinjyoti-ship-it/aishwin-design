@@ -12,13 +12,13 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
 
   useEffect(() => {
     if (!selectedId) { setDraft(null); return; }
-    fetch(`/api/design-systems/${selectedId}`).then((r) => r.json()).then((j) => {
+    fetch(`/api/design-systems/${selectedId}`).then((r) => r.json() as any).then((j) => {
       if (j.design_system) setDraft({ name: j.design_system.name, summary: j.design_system.summary, body: j.design_system.body });
     });
   }, [selectedId]);
 
   async function refresh() {
-    const r = await fetch("/api/design-systems").then((r) => r.json());
+    const r = await fetch("/api/design-systems").then((r) => r.json() as any);
     setRows(r.design_systems ?? []);
   }
 
@@ -28,7 +28,7 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "New design system", summary: "", body: "# New design system\n\n## Colour\n\n## Typography\n\n## Spacing\n\n## Components" }),
     });
-    const j = await res.json();
+    const j = await res.json() as any;
     if (res.ok && j.id) { await refresh(); setSelectedId(j.id); }
   }
 
