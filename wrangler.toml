@@ -14,7 +14,7 @@ APP_NAME = "Aishwin Design"
 [[d1_databases]]
 binding = "DB"
 database_name = "aish-design"
-database_id = "REPLACE_WITH_YOUR_D1_ID"
+database_id = "14743729-b034-40dc-bd62-946a63e2a3e8"
 
 [[r2_buckets]]
 binding = "ARTIFACTS"
@@ -22,7 +22,7 @@ bucket_name = "aish-design-artifacts"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "REPLACE_WITH_YOUR_KV_ID"
+id = "de1437746b5a4a19b054ad06b2362e21"
 
 # Secrets, set in the Cloudflare dashboard (Pages → aish-design → Settings → Environment variables → Encrypted):
 #   APP_PASSWORD       shared bearer to access the app

@@ -110,7 +110,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
       body: JSON.stringify({ body, pinned: false }),
     });
     if (res.ok) {
-      const j = await res.json();
+      const j = await res.json() as any;
       setMemory((m) => [{ id: j.id, body, pinned: 0, updated_at: Date.now() / 1000 }, ...m]);
     }
   }
