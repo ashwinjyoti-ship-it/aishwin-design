@@ -43,8 +43,11 @@ export function buildSystemPrompt({
   projectId,
 }: BuildPromptArgs): string {
   const frame = projectId ? FRAME.replace("{PROJECT_ID}", projectId) : FRAME;
+  const processedSkill = skillBody
+    ? skillBody.replace(/\{project_id\}/gi, projectId ?? "unknown")
+    : null;
   const parts = [frame, `You are running inside ${appName}.`];
-  if (skillBody) parts.push(`# Active skill\n\n${skillBody.trim()}`);
+  if (processedSkill) parts.push(`# Active skill\n\n${processedSkill.trim()}`);
   if (designSystemBody) parts.push(`# Design system tokens (follow these strictly)\n\n${designSystemBody.trim()}`);
   if (memory && memory.length) {
     parts.push(`# Project memory (durable preferences)\n\n${memory.map((m) => `- ${m}`).join("\n")}`);
@@ -54,6 +57,7 @@ export function buildSystemPrompt({
 }
 
 export function extractHtml(reply: string): string | null {
-  const m = reply.match(/```html\s*([\s\S]*?)```/i);
+  // Match 3–4 backticks, optional 'html' tag, tolerant whitespace
+  const m = reply.match(/```+(?:html)?\s*([\s\S]*?)```+/i);
   return m ? m[1].trim() : null;
 }
