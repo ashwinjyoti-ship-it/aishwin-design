@@ -18,16 +18,16 @@ export default async function Home() {
   const list = projects.results ?? [];
   return (
     <Chrome active="projects">
-      <div className="grid grid-cols-12 gap-12">
-        <section className="col-span-12 md:col-span-7">
-          <div className="text-[11px] uppercase tracking-[0.16em] text-muted">Studio</div>
-          <h1 className="display text-[44px] leading-[1.05] mt-2">Projects</h1>
-          <p className="text-[15px] text-muted mt-3 max-w-[44ch]">
+      <div className="grid grid-cols-12 gap-4">
+        <section className="col-span-12 lg:col-span-8">
+          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-cream">Studio</div>
+          <h1 className="display mt-2 text-[36px] leading-[1.2]">Projects</h1>
+          <p className="mt-3 max-w-[44ch] text-[15px] text-muted-cream">
             Each project keeps its own conversation, memory, and outputs. Pick a skill and a design system to frame the room.
           </p>
-          <div className="mt-10 border-t rule">
+          <div className="mt-8 rounded-md border border-warm-grey bg-charcoal">
             {list.length === 0 ? (
-              <div className="py-16 text-center text-muted text-[14px]">No projects yet. Start one on the right.</div>
+              <div className="py-16 text-center text-[14px] text-ash-grey">No projects yet. Start one on the right.</div>
             ) : (
               <ul>
                 {list.map((p) => (
@@ -37,9 +37,9 @@ export default async function Home() {
             )}
           </div>
         </section>
-        <aside className="col-span-12 md:col-span-5 md:pl-8 md:border-l rule">
-          <div className="text-[11px] uppercase tracking-[0.16em] text-muted">New</div>
-          <h2 className="display text-[24px] mt-2 mb-6">Start a project</h2>
+        <aside className="col-span-12 rounded-md border border-warm-grey bg-charcoal p-6 lg:col-span-4 lg:w-[380px]">
+          <div className="text-[11px] uppercase tracking-[0.16em] text-muted-cream">New</div>
+          <h2 className="mt-2 mb-6 text-[24px] font-semibold">Start a project</h2>
           <NewProject skills={skills.results ?? []} designSystems={designSystems.results ?? []} />
         </aside>
       </div>
