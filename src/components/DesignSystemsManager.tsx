@@ -12,19 +12,20 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
 
   useEffect(() => {
     if (!selectedId) { setDraft(null); return; }
-    fetch(`/api/design-systems/${selectedId}`).then((r) => r.json() as any).then((j) => {
+    fetch(`/api/design-systems/${selectedId}`, { credentials: "include" }).then((r) => r.json() as any).then((j) => {
       if (j.design_system) setDraft({ name: j.design_system.name, summary: j.design_system.summary, body: j.design_system.body });
     });
   }, [selectedId]);
 
   async function refresh() {
-    const r = await fetch("/api/design-systems").then((r) => r.json() as any);
+    const r = await fetch("/api/design-systems", { credentials: "include" }).then((r) => r.json() as any);
     setRows(r.design_systems ?? []);
   }
 
   async function onNew() {
     const res = await fetch("/api/design-systems", {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "New design system", summary: "", body: "# New design system\n\n## Colour\n\n## Typography\n\n## Spacing\n\n## Components" }),
     });
@@ -36,6 +37,7 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
     if (!selected || !draft) return;
     await fetch(`/api/design-systems/${selected.id}`, {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(draft),
     });
@@ -44,7 +46,7 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
 
   async function onDelete() {
     if (!selected || selected.preloaded) return;
-    await fetch(`/api/design-systems/${selected.id}`, { method: "DELETE" });
+    await fetch(`/api/design-systems/${selected.id}`, { method: "DELETE", credentials: "include" });
     setSelectedId(null);
     await refresh();
   }
