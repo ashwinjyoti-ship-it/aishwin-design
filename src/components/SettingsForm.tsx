@@ -15,9 +15,32 @@ interface Props {
 
 const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 via OpenAI API" };
 
+const MODEL_LABELS: Record<string, string> = {
+  "kimi-k2-0711-preview": "Kimi K2 Preview",
+  "kimi-k2-turbo-preview": "Kimi K2 Turbo",
+  "moonshot-v1-128k": "Moonshot v1 128K",
+  "moonshot-v1-32k": "Moonshot v1 32K",
+  "claude-opus-4-7": "Claude Opus 4.7",
+  "claude-sonnet-4-6": "Claude Sonnet 4.6",
+  "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
+  "gemini-2.5-pro": "Gemini 2.5 Pro",
+  "gemini-2.5-flash": "Gemini 2.5 Flash",
+  "moonshotai/kimi-k2": "Kimi K2",
+  "anthropic/claude-sonnet-4.6": "Claude Sonnet 4.6",
+  "anthropic/claude-opus-4.7": "Claude Opus 4.7",
+  "google/gemini-2.5-pro": "Gemini 2.5 Pro",
+  "deepseek/deepseek-chat": "DeepSeek Chat",
+};
+
+function modelLabel(id: string) { return MODEL_LABELS[id] ?? id; }
+
 export function SettingsForm({ providers, initial }: Props) {
   const [defaultProvider, setDefaultProvider] = useState(initial.defaultProvider);
-  const [defaultModel, setDefaultModel] = useState(initial.defaultModel);
+  // If the stored model isn't in the current provider's list, fall back to the provider's default.
+  const [defaultModel, setDefaultModel] = useState(() => {
+    const spec = providers.find((p) => p.id === initial.defaultProvider);
+    return spec?.models.includes(initial.defaultModel) ? initial.defaultModel : (spec?.defaultModel ?? initial.defaultModel);
+  });
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [keysSet, setKeysSet] = useState<Record<string, boolean>>(initial.keysSet || {});
   const [saving, setSaving] = useState(false);
@@ -102,7 +125,7 @@ export function SettingsForm({ providers, initial }: Props) {
           <div>
             <label className="label">Default model</label>
             <select className="field" value={defaultModel} onChange={(e) => setDefaultModel(e.target.value)}>
-              {activeModels.map((m) => <option key={m} value={m}>{m}</option>)}
+              {activeModels.map((m) => <option key={m} value={m}>{modelLabel(m)}</option>)}
             </select>
           </div>
           <div className="pt-2 flex items-center gap-3">

@@ -47,7 +47,8 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="text-[12px] text-muted mt-8 leading-relaxed">
-          Set <span className="font-mono">APP_PASSWORD</span> as a Cloudflare secret. There are no accounts &mdash; one shared key.
+          Set <span className="font-mono">APP_PASSWORD</span> as a Cloudflare Pages secret to require a password.
+          If none is set, leave the field blank and click Enter.
         </p>
       </div>
     </div>

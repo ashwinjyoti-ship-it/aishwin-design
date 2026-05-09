@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-interface Row { id: string; name: string; summary: string; preloaded: number; updated_at: number; body?: string }
+interface Row { id: string; name: string; summary: string; body: string; preloaded: number; updated_at: number }
 
 export function DesignSystemsManager({ initial }: { initial: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initial);
@@ -12,9 +12,8 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
 
   useEffect(() => {
     if (!selectedId) { setDraft(null); return; }
-    fetch(`/api/design-systems/${selectedId}`, { credentials: "include" }).then((r) => r.json() as any).then((j) => {
-      if (j.design_system) setDraft({ name: j.design_system.name, summary: j.design_system.summary, body: j.design_system.body });
-    });
+    const row = rows.find((r) => r.id === selectedId);
+    if (row) setDraft({ name: row.name, summary: row.summary, body: row.body });
   }, [selectedId]);
 
   async function refresh() {
@@ -23,14 +22,19 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
   }
 
   async function onNew() {
+    const defaultBody = "# New design system\n\n## Colour\n\n## Typography\n\n## Spacing\n\n## Components";
     const res = await fetch("/api/design-systems", {
       method: "POST",
       credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: "New design system", summary: "", body: "# New design system\n\n## Colour\n\n## Typography\n\n## Spacing\n\n## Components" }),
+      body: JSON.stringify({ name: "New design system", summary: "", body: defaultBody }),
     });
     const j = await res.json() as any;
-    if (res.ok && j.id) { await refresh(); setSelectedId(j.id); }
+    if (res.ok && j.id) {
+      await refresh();
+      setSelectedId(j.id);
+      setDraft({ name: "New design system", summary: "", body: defaultBody });
+    }
   }
 
   async function onSave() {
