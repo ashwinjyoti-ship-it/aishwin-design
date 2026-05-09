@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { db } from "@/lib/env";
 import { Chrome } from "@/components/Chrome";
 import { NewProject } from "@/components/NewProject";
+import { ProjectRow } from "@/components/ProjectRowActions";
 
 export const runtime = "edge";
 export const dynamic = "force-dynamic";
@@ -31,23 +31,7 @@ export default async function Home() {
             ) : (
               <ul>
                 {list.map((p) => (
-                  <li key={p.id} className="border-b rule">
-                    <Link href={`/projects/${p.id}`} className="grid grid-cols-12 gap-4 py-5 group">
-                      <div className="col-span-7">
-                        <div className="display text-[20px] tracking-tightish group-hover:underline underline-offset-4 decoration-rule">
-                          {p.name}
-                        </div>
-                        {p.brief && <div className="text-[13px] text-muted mt-1 line-clamp-1">{p.brief}</div>}
-                      </div>
-                      <div className="col-span-3 self-center flex gap-1 flex-wrap">
-                        {p.skill_id && <span className="pill">{p.skill_id.replace("skl_", "")}</span>}
-                        {p.design_system_id && <span className="pill">{p.design_system_id.replace("ds_", "")}</span>}
-                      </div>
-                      <div className="col-span-2 self-center text-right text-[12px] text-muted">
-                        {new Date(p.updated_at * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
-                      </div>
-                    </Link>
-                  </li>
+                  <ProjectRow key={p.id} project={p} />
                 ))}
               </ul>
             )}
