@@ -13,22 +13,31 @@ interface Props {
   };
 }
 
-const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 via OpenAI API" };
+const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 — same API key as chat" };
 
 const MODEL_LABELS: Record<string, string> = {
-  "kimi-k2-0711-preview": "Kimi K2 Preview",
-  "kimi-k2-turbo-preview": "Kimi K2 Turbo",
-  "moonshot-v1-128k": "Moonshot v1 128K",
-  "moonshot-v1-32k": "Moonshot v1 32K",
-  "claude-opus-4-7": "Claude Opus 4.7",
-  "claude-sonnet-4-6": "Claude Sonnet 4.6",
-  "claude-haiku-4-5-20251001": "Claude Haiku 4.5",
-  "gemini-2.5-pro": "Gemini 2.5 Pro",
+  // OpenAI
+  "gpt-5.5": "GPT-5.5",
+  "gpt-5.4-mini": "GPT-5.4 Mini",
+  "o4-mini": "o4 Mini",
+  // Anthropic
+  "claude-opus-4.7": "Claude Opus 4.7",
+  "claude-sonnet-4.5": "Claude Sonnet 4.5",
+  "claude-haiku": "Claude Haiku",
+  // Gemini
+  "gemini-3-pro": "Gemini 3 Pro",
+  "gemini-3.1-pro": "Gemini 3.1 Pro",
   "gemini-2.5-flash": "Gemini 2.5 Flash",
-  "moonshotai/kimi-k2": "Kimi K2",
-  "anthropic/claude-sonnet-4.6": "Claude Sonnet 4.6",
+  // Moonshot Kimi
+  "kimi-k2.6": "Kimi K2.6",
+  "kimi-k2.5": "Kimi K2.5",
+  // OpenRouter
+  "openai/gpt-5.5": "GPT-5.5",
+  "openai/gpt-5.4-mini": "GPT-5.4 Mini",
   "anthropic/claude-opus-4.7": "Claude Opus 4.7",
-  "google/gemini-2.5-pro": "Gemini 2.5 Pro",
+  "anthropic/claude-sonnet-4.5": "Claude Sonnet 4.5",
+  "google/gemini-3-pro": "Gemini 3 Pro",
+  "moonshotai/kimi-k2.6": "Kimi K2.6",
   "deepseek/deepseek-chat": "DeepSeek Chat",
 };
 
@@ -80,14 +89,8 @@ export function SettingsForm({ providers, initial }: Props) {
           {allKeys.map((p) => (
             <li key={p.id} className="border-b rule py-5 grid grid-cols-12 gap-4 items-center">
               <div className="col-span-4">
-                <div className="display text-[17px] text-ink flex items-center gap-2">
-                  {p.label}
-                  {p.id === "openai" && <span className="pill text-[10px]">coming soon</span>}
-                </div>
+                <div className="display text-[17px] text-ink">{p.label}</div>
                 <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
-                {p.id === "openai" && (
-                  <div className="text-[11px] text-muted mt-1 leading-tight">For image generation only</div>
-                )}
               </div>
               <div className="col-span-6">
                 <input

@@ -1,11 +1,11 @@
 import { db } from "./env";
 
 export interface ProviderKeys {
+  openai?: string; // chat (gpt-5.5 etc.) + image generation (gpt-image-1)
   anthropic?: string;
   gemini?: string;
   moonshot?: string;
   openrouter?: string;
-  openai?: string; // used for image generation (gpt-image-1)
 }
 
 export interface AppSettings {
@@ -15,8 +15,8 @@ export interface AppSettings {
 }
 
 const DEFAULTS: AppSettings = {
-  defaultProvider: "moonshot",
-  defaultModel: "kimi-k2-0711-preview",
+  defaultProvider: "openai",
+  defaultModel: "gpt-5.5",
   keys: {},
 };
 
@@ -44,11 +44,11 @@ export function publicSettings(s: AppSettings) {
     defaultProvider: s.defaultProvider,
     defaultModel: s.defaultModel,
     keysSet: {
-      moonshot: !!s.keys.moonshot,
+      openai: !!s.keys.openai,
       anthropic: !!s.keys.anthropic,
       gemini: !!s.keys.gemini,
+      moonshot: !!s.keys.moonshot,
       openrouter: !!s.keys.openrouter,
-      openai: !!s.keys.openai,
     },
   };
 }
