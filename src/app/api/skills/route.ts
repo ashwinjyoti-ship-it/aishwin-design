@@ -8,7 +8,7 @@ export const runtime = "edge";
 export async function GET() {
   if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const rows = await db()
-    .prepare("SELECT id, name, summary, preloaded, updated_at FROM skills ORDER BY preloaded DESC, name ASC")
+    .prepare("SELECT id, name, summary, body, preloaded, updated_at FROM skills ORDER BY preloaded DESC, name ASC")
     .all();
   return NextResponse.json({ skills: rows.results ?? [] });
 }

@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 
 export default async function DesignSystemsPage() {
   const rows = await db()
-    .prepare("SELECT id, name, summary, preloaded, updated_at FROM design_systems ORDER BY preloaded DESC, name ASC")
-    .all<{ id: string; name: string; summary: string; preloaded: number; updated_at: number }>();
+    .prepare("SELECT id, name, summary, body, preloaded, updated_at FROM design_systems ORDER BY preloaded DESC, name ASC")
+    .all<{ id: string; name: string; summary: string; body: string; preloaded: number; updated_at: number }>();
   return (
     <Chrome active="design-systems">
       <div className="text-[11px] uppercase tracking-[0.16em] text-muted">Design systems</div>
