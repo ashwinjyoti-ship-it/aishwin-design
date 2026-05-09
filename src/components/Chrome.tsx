@@ -24,9 +24,9 @@ export function Chrome({ children, active }: { children: React.ReactNode; active
     <div className="min-h-dvh bg-obsidian text-warm-white">
       <div className="flex min-h-dvh">
         <aside className="w-[240px] border-r border-warm-grey bg-charcoal px-4 py-8">
-          <Link href="/" className="mb-8 block px-2">
-            <span className="display text-xl">Aishwin Forge</span>
-          </Link>
+           <Link href="/" className="mb-8 block px-2">
+             <span className="display text-xl">Aishwin Design</span>
+           </Link>
           <nav className="space-y-2">
             {item("/", "Projects", "projects")}
             {item("/skills", "Skills", "skills")}
