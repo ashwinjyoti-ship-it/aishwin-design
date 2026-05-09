@@ -57,7 +57,10 @@ export function SettingsForm({ providers, initial }: Props) {
           {allKeys.map((p) => (
             <li key={p.id} className="border-b rule py-5 grid grid-cols-12 gap-4 items-center">
               <div className="col-span-4">
-                <div className="display text-[17px] text-ink">{p.label}</div>
+                <div className="display text-[17px] text-ink flex items-center gap-2">
+                  {p.label}
+                  {p.id === "openai" && <span className="pill text-[10px]">coming soon</span>}
+                </div>
                 <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
                 {p.id === "openai" && (
                   <div className="text-[11px] text-muted mt-1 leading-tight">For image generation only</div>
