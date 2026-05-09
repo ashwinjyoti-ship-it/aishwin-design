@@ -36,7 +36,7 @@ async function* stream({ apiKey, model, system, messages, signal }: StreamArgs) 
 export const anthropic: ProviderAdapter = {
   id: "anthropic",
   label: "Anthropic",
-  defaultModel: "claude-sonnet-4-6",
-  models: ["claude-opus-4-7", "claude-sonnet-4-6", "claude-haiku-4-5-20251001"],
+  defaultModel: "claude-opus-4.7",
+  models: ["claude-opus-4.7", "claude-sonnet-4.5", "claude-haiku"],
   stream,
 };

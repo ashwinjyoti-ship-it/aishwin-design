@@ -51,25 +51,34 @@ function adapterFrom(cfg: CompatConfig): ProviderAdapter {
   };
 }
 
+export const openai = adapterFrom({
+  id: "openai",
+  label: "OpenAI",
+  baseUrl: "https://api.openai.com/v1",
+  defaultModel: "gpt-5.5",
+  models: ["gpt-5.5", "gpt-5.4-mini", "o4-mini"],
+});
+
 export const moonshot = adapterFrom({
   id: "moonshot",
   label: "Moonshot Kimi",
   baseUrl: "https://api.moonshot.ai/v1",
-  defaultModel: "kimi-k2-0711-preview",
-  // Kimi K2.6 + the long-context turbo variants. Edit in /settings if Moonshot ships new IDs.
-  models: ["kimi-k2-0711-preview", "kimi-k2-turbo-preview", "moonshot-v1-128k", "moonshot-v1-32k"],
+  defaultModel: "kimi-k2.6",
+  models: ["kimi-k2.6", "kimi-k2.5"],
 });
 
 export const openrouter = adapterFrom({
   id: "openrouter",
   label: "OpenRouter",
   baseUrl: "https://openrouter.ai/api/v1",
-  defaultModel: "moonshotai/kimi-k2",
+  defaultModel: "openai/gpt-5.5",
   models: [
-    "moonshotai/kimi-k2",
-    "anthropic/claude-sonnet-4.6",
+    "openai/gpt-5.5",
+    "openai/gpt-5.4-mini",
     "anthropic/claude-opus-4.7",
-    "google/gemini-2.5-pro",
+    "anthropic/claude-sonnet-4.5",
+    "google/gemini-3-pro",
+    "moonshotai/kimi-k2.6",
     "deepseek/deepseek-chat",
   ],
 });
