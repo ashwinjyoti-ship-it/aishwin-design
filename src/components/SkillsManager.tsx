@@ -12,19 +12,20 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
 
   useEffect(() => {
     if (!selectedId) { setDraft(null); return; }
-    fetch(`/api/skills/${selectedId}`).then((r) => r.json() as any).then((j) => {
+    fetch(`/api/skills/${selectedId}`, { credentials: "include" }).then((r) => r.json() as any).then((j) => {
       if (j.skill) setDraft({ name: j.skill.name, summary: j.skill.summary, body: j.skill.body });
     });
   }, [selectedId]);
 
   async function refresh() {
-    const r = await fetch("/api/skills").then((r) => r.json() as any);
+    const r = await fetch("/api/skills", { credentials: "include" }).then((r) => r.json() as any);
     setRows(r.skills ?? []);
   }
 
   async function onNew() {
     const res = await fetch("/api/skills", {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "New skill", summary: "", body: "# New skill\n\nDescribe sections and guardrails." }),
     });
@@ -39,6 +40,7 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
     if (!selected || !draft) return;
     await fetch(`/api/skills/${selected.id}`, {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(draft),
     });
@@ -47,7 +49,7 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
 
   async function onDelete() {
     if (!selected || selected.preloaded) return;
-    await fetch(`/api/skills/${selected.id}`, { method: "DELETE" });
+    await fetch(`/api/skills/${selected.id}`, { method: "DELETE", credentials: "include" });
     setSelectedId(null);
     await refresh();
   }
