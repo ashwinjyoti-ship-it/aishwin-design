@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ProviderSpec { id: string; label: string; defaultModel: string; models: string[] }
 
@@ -54,11 +54,19 @@ export function SettingsForm({ providers, initial }: Props) {
   const [keysSet, setKeysSet] = useState<Record<string, boolean>>(initial.keysSet || {});
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
 
   const activeModels = providers.find((p) => p.id === defaultProvider)?.models ?? [];
 
-  function setKey(pid: string, val: string) { setKeys({ ...keys, [pid]: val }); }
-  function removeKey(pid: string) { setKeys({ ...keys, [pid]: "__clear__" }); setKeysSet({ ...keysSet, [pid]: false }); }
+  const pendingKeyIds = useMemo(() =>
+    Object.entries(keys)
+      .filter(([, v]) => v === "__clear__" || v.length > 0)
+      .map(([k]) => k),
+  [keys]);
+
+
+  function setKey(pid: string, val: string) { setKeys({ ...keys, [pid]: val }); setSaveState("idle"); }
+  function removeKey(pid: string) { setKeys({ ...keys, [pid]: "__clear__" }); setKeysSet({ ...keysSet, [pid]: false }); setSaveState("idle"); }
 
   async function save() {
     setSaving(true);
@@ -71,11 +79,19 @@ export function SettingsForm({ providers, initial }: Props) {
     if (Object.keys(keysPatch).length) payload.keys = keysPatch;
     const res = await fetch("/api/settings", {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const j = await res.json() as any;
-    if (res.ok) { setKeys({}); setKeysSet(j.settings.keysSet); setSavedAt(Date.now()); }
+    const j = await res.json().catch(() => ({})) as any;
+    if (res.ok) {
+      setKeys({});
+      setKeysSet(j.settings.keysSet);
+      setSavedAt(Date.now());
+      setSaveState("saved");
+    } else {
+      setSaveState("error");
+    }
     setSaving(false);
   }
 
@@ -102,11 +118,15 @@ export function SettingsForm({ providers, initial }: Props) {
                 />
               </div>
               <div className="col-span-2 text-right">
-                {keysSet[p.id] && (
-                  <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
-                    Remove
-                  </button>
-                )}
+                <div className="flex items-center justify-end gap-3">
+                  {pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Pending save</span>}
+                  {keysSet[p.id] && !pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Saved</span>}
+                  {keysSet[p.id] && (
+                    <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             </li>
           ))}
@@ -133,7 +153,8 @@ export function SettingsForm({ providers, initial }: Props) {
           </div>
           <div className="pt-2 flex items-center gap-3">
             <button onClick={save} className="btn" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-            {savedAt && <span className="text-[12px] text-muted">saved</span>}
+            {saveState === "saved" && savedAt && <span className="text-[12px] text-muted">Saved just now ✓</span>}
+            {saveState === "error" && <span className="text-[12px] text-red-600">Could not save. Try again.</span>}
           </div>
           <div className="pt-4 border-t rule">
             <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-3">Storage</div>
