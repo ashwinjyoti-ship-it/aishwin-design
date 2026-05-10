@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isAuthed } from "@/lib/auth";
 import { publicSettings, readSettings, writeSettings } from "@/lib/settings";
 import { PROVIDER_ORDER, PROVIDERS } from "@/lib/providers";
 
 export const runtime = "edge";
 
-export async function GET(req: NextRequest) {
-  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET() {
   const s = await readSettings();
   return NextResponse.json({
     settings: publicSettings(s),
@@ -20,7 +18,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as {
     defaultProvider?: string;
     defaultModel?: string;

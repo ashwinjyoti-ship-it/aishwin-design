@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/env";
-import { isAuthed } from "@/lib/auth";
 import { id as makeId } from "@/lib/id";
 import { sha256 } from "@/lib/hash";
 import { kvGet, kvPut } from "@/lib/kv";
@@ -13,7 +12,6 @@ export const runtime = "edge";
 // Called by the sandboxed iframe when it loads an <img> tag pointing here.
 // Checks KV cache → R2 → generates via OpenAI → stores → returns image bytes.
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed(req))) return new Response("unauthorized", { status: 401 });
   const { id: pid } = await params;
   const prompt = req.nextUrl.searchParams.get("prompt") ?? "";
   if (!prompt.trim()) return new Response("prompt required", { status: 400 });
