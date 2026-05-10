@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Props {
   skills: { id: string; name: string }[];
@@ -47,14 +48,20 @@ export function NewProject({ skills, designSystems }: Props) {
       </div>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col">
-          <label className="label h-[14px] leading-[14px]">Skill</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] uppercase tracking-[0.14em] text-muted-cream">Skill</label>
+            <Link href="/skills" className="text-[11px] text-muted-cream hover:text-warm-white">Manage →</Link>
+          </div>
           <select className="field h-[40px] py-0" value={skill} onChange={(e) => setSkill(e.target.value)}>
             <option value="">No skill</option>
             {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div className="flex flex-col">
-          <label className="label h-[14px] leading-[14px]">Design system</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-[11px] uppercase tracking-[0.14em] text-muted-cream">Design system</label>
+            <Link href="/design-systems" className="text-[11px] text-muted-cream hover:text-warm-white">Manage →</Link>
+          </div>
           <select className="field h-[40px] py-0" value={ds} onChange={(e) => setDs(e.target.value)}>
             <option value="">None</option>
             {designSystems.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
