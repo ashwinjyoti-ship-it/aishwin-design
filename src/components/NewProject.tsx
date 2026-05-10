@@ -21,6 +21,7 @@ export function NewProject({ skills, designSystems }: Props) {
     setBusy(true);
     const res = await fetch("/api/projects", {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name, brief, skill_id: skill || null, design_system_id: ds || null }),
     });

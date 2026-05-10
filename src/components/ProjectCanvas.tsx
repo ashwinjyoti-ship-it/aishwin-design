@@ -51,6 +51,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
 
     const res = await fetch(`/api/projects/${project.id}/messages`, {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ content }),
     });
@@ -118,6 +119,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   async function patchProject(body: Partial<Project>) {
     await fetch(`/api/projects/${project.id}`, {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     });
@@ -128,6 +130,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
     if (!body.trim()) return;
     const res = await fetch(`/api/projects/${project.id}/memory`, {
       method: "POST",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ body, pinned: false }),
     });
@@ -140,6 +143,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   async function deleteMemory(mid: string) {
     await fetch(`/api/projects/${project.id}/memory`, {
       method: "DELETE",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ mid }),
     });
