@@ -35,10 +35,12 @@ export function SettingsForm({ providers, initial }: Props) {
     for (const [k, v] of Object.entries(keys)) {
       if (v === "__clear__") keysPatch[k] = null;
       else if (v.length) keysPatch[k] = v;
+      else if (keysSet[k]) keysPatch[k] = null;
     }
     if (Object.keys(keysPatch).length) payload.keys = keysPatch;
     const res = await fetch("/api/settings", {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
