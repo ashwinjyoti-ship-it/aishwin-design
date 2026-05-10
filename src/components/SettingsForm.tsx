@@ -70,6 +70,7 @@ export function SettingsForm({ providers, initial }: Props) {
 
   async function save() {
     setSaving(true);
+    setSaveState("idle");
     const payload: Record<string, unknown> = { defaultProvider, defaultModel };
     const keysPatch: Record<string, string | null> = {};
     for (const [k, v] of Object.entries(keys)) {
@@ -153,8 +154,8 @@ export function SettingsForm({ providers, initial }: Props) {
           </div>
           <div className="pt-2 flex items-center gap-3">
             <button onClick={save} className="btn" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-            {saveState === "saved" && savedAt && <span className="text-[12px] text-muted">Saved just now ✓</span>}
-            {saveState === "error" && <span className="text-[12px] text-red-600">Could not save. Try again.</span>}
+            {saveState === "saved" && savedAt && <span className="text-[12px] text-muted">Saved just now</span>}
+            {saveState === "error" && <span className="text-[12px] text-red-400">Could not save. Try again.</span>}
           </div>
           <div className="pt-4 border-t rule">
             <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-3">Storage</div>
