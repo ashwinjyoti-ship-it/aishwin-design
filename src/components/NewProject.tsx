@@ -45,7 +45,7 @@ export function NewProject({ skills, designSystems }: Props) {
           placeholder="What are you making, for whom, and what tone?"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col">
           <label className="label h-[14px] leading-[14px]">Skill</label>
           <select className="field h-[40px] py-0" value={skill} onChange={(e) => setSkill(e.target.value)}>
