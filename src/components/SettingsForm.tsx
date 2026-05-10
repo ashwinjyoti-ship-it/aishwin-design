@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface ProviderSpec { id: string; label: string; defaultModel: string; models: string[] }
 
@@ -13,25 +13,64 @@ interface Props {
   };
 }
 
-const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 via OpenAI API" };
+const IMAGE_PROVIDER = { id: "openai", label: "OpenAI (image generation)", hint: "gpt-image-1 — same API key as chat" };
+
+const MODEL_LABELS: Record<string, string> = {
+  // OpenAI
+  "gpt-5.5": "GPT-5.5",
+  "gpt-5.4-mini": "GPT-5.4 Mini",
+  "o4-mini": "o4 Mini",
+  // Anthropic
+  "claude-opus-4.7": "Claude Opus 4.7",
+  "claude-sonnet-4.5": "Claude Sonnet 4.5",
+  "claude-haiku": "Claude Haiku",
+  // Gemini
+  "gemini-3-pro": "Gemini 3 Pro",
+  "gemini-3.1-pro": "Gemini 3.1 Pro",
+  "gemini-2.5-flash": "Gemini 2.5 Flash",
+  // Moonshot Kimi
+  "kimi-k2.6": "Kimi K2.6",
+  "kimi-k2.5": "Kimi K2.5",
+  // OpenRouter
+  "openai/gpt-5.5": "GPT-5.5",
+  "openai/gpt-5.4-mini": "GPT-5.4 Mini",
+  "anthropic/claude-opus-4.7": "Claude Opus 4.7",
+  "anthropic/claude-sonnet-4.5": "Claude Sonnet 4.5",
+  "google/gemini-3-pro": "Gemini 3 Pro",
+  "moonshotai/kimi-k2.6": "Kimi K2.6",
+  "deepseek/deepseek-chat": "DeepSeek Chat",
+};
+
+function modelLabel(id: string) { return MODEL_LABELS[id] ?? id; }
 
 export function SettingsForm({ providers, initial }: Props) {
   const [defaultProvider, setDefaultProvider] = useState(initial.defaultProvider);
-  const [defaultModel, setDefaultModel] = useState(initial.defaultModel);
+  // If the stored model isn't in the current provider's list, fall back to the provider's default.
+  const [defaultModel, setDefaultModel] = useState(() => {
+    const spec = providers.find((p) => p.id === initial.defaultProvider);
+    return spec?.models.includes(initial.defaultModel) ? initial.defaultModel : (spec?.defaultModel ?? initial.defaultModel);
+  });
   const [keys, setKeys] = useState<Record<string, string>>({});
   const [keysSet, setKeysSet] = useState<Record<string, boolean>>(initial.keysSet || {});
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
-  const [saveError, setSaveError] = useState(false);
+  const [saveState, setSaveState] = useState<"idle" | "saved" | "error">("idle");
 
   const activeModels = providers.find((p) => p.id === defaultProvider)?.models ?? [];
 
-  function setKey(pid: string, val: string) { setKeys({ ...keys, [pid]: val }); }
-  function removeKey(pid: string) { setKeys({ ...keys, [pid]: "__clear__" }); setKeysSet({ ...keysSet, [pid]: false }); }
+  const pendingKeyIds = useMemo(() =>
+    Object.entries(keys)
+      .filter(([, v]) => v === "__clear__" || v.length > 0)
+      .map(([k]) => k),
+  [keys]);
+
+
+  function setKey(pid: string, val: string) { setKeys({ ...keys, [pid]: val }); setSaveState("idle"); }
+  function removeKey(pid: string) { setKeys({ ...keys, [pid]: "__clear__" }); setKeysSet({ ...keysSet, [pid]: false }); setSaveState("idle"); }
 
   async function save() {
     setSaving(true);
-    setSaveError(false);
+    setSaveState("idle");
     const payload: Record<string, unknown> = { defaultProvider, defaultModel };
     const keysPatch: Record<string, string | null> = {};
     for (const [k, v] of Object.entries(keys)) {
@@ -45,13 +84,14 @@ export function SettingsForm({ providers, initial }: Props) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
+    const j = await res.json().catch(() => ({})) as any;
     if (res.ok) {
-      const j = await res.json() as any;
       setKeys({});
       setKeysSet(j.settings.keysSet);
       setSavedAt(Date.now());
+      setSaveState("saved");
     } else {
-      setSaveError(true);
+      setSaveState("error");
     }
     setSaving(false);
   }
@@ -68,9 +108,6 @@ export function SettingsForm({ providers, initial }: Props) {
               <div className="col-span-4">
                 <div className="display text-[17px] text-ink">{p.label}</div>
                 <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
-                {p.id === "openai" && (
-                  <div className="text-[11px] text-muted mt-1 leading-tight">For image generation only</div>
-                )}
               </div>
               <div className="col-span-6">
                 <input
@@ -82,14 +119,15 @@ export function SettingsForm({ providers, initial }: Props) {
                 />
               </div>
               <div className="col-span-2 text-right">
-                {keys[p.id] && keys[p.id] !== "__clear__" && (
-                  <span className="text-[12px] text-muted">Pending save</span>
-                )}
-                {!keys[p.id] && keysSet[p.id] && (
-                  <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
-                    Remove
-                  </button>
-                )}
+                <div className="flex items-center justify-end gap-3">
+                  {pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Pending save</span>}
+                  {keysSet[p.id] && !pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Saved</span>}
+                  {keysSet[p.id] && (
+                    <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
+                      Remove
+                    </button>
+                  )}
+                </div>
               </div>
             </li>
           ))}
@@ -111,13 +149,13 @@ export function SettingsForm({ providers, initial }: Props) {
           <div>
             <label className="label">Default model</label>
             <select className="field" value={defaultModel} onChange={(e) => setDefaultModel(e.target.value)}>
-              {activeModels.map((m) => <option key={m} value={m}>{m}</option>)}
+              {activeModels.map((m) => <option key={m} value={m}>{modelLabel(m)}</option>)}
             </select>
           </div>
           <div className="pt-2 flex items-center gap-3">
             <button onClick={save} className="btn" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-            {savedAt && !saveError && <span className="text-[12px] text-muted">saved</span>}
-            {saveError && <span className="text-[12px] text-red-400">Could not save. Try again.</span>}
+            {saveState === "saved" && savedAt && <span className="text-[12px] text-muted">Saved just now</span>}
+            {saveState === "error" && <span className="text-[12px] text-red-400">Could not save. Try again.</span>}
           </div>
           <div className="pt-4 border-t rule">
             <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-3">Storage</div>

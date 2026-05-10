@@ -32,6 +32,8 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [input, setInput] = useState("");
   const [showMemory, setShowMemory] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [previewWidth, setPreviewWidth] = useState<"390px" | "768px" | "100%">("100%");
+  const [error, setError] = useState<string | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const lastArtifact = [...msgs].reverse().find((m) => m.artifact_key)?.artifact_key ?? null;
@@ -43,6 +45,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   async function send() {
     const content = input.trim();
     if (!content || busy) return;
+    setError(null);
     setBusy(true); setInput(""); setStreaming("");
     setMsgs((m) => [...m, { id: "tmp_u", role: "user", content, artifact_key: null, created_at: Date.now() / 1000 }]);
 
@@ -61,36 +64,55 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
     const reader = res.body.getReader();
     const dec = new TextDecoder();
     let buf = ""; let assembled = ""; let userIdReplaced = false;
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buf += dec.decode(value, { stream: true });
-      let idx;
-      while ((idx = buf.indexOf("\n\n")) !== -1) {
-        const block = buf.slice(0, idx); buf = buf.slice(idx + 2);
-        const evtLine = block.split("\n").find((l) => l.startsWith("event:"));
-        const dataLine = block.split("\n").find((l) => l.startsWith("data:"));
-        if (!evtLine || !dataLine) continue;
-        const evt = evtLine.slice(6).trim();
-        const data = JSON.parse(dataLine.slice(5).trim());
-        if (evt === "user_message" && !userIdReplaced) {
-          userIdReplaced = true;
-          setMsgs((m) => m.map((x) => x.id === "tmp_u" ? { ...x, id: data.id } : x));
-        } else if (evt === "delta") {
-          assembled += data;
-          setStreaming(assembled);
-        } else if (evt === "done") {
-          setMsgs((m) => [...m, { id: data.id, role: "assistant", content: assembled, artifact_key: data.artifact_id, created_at: Date.now() / 1000 }]);
-          setStreaming("");
-          if (data.artifact_id) setIframeKey((k) => k + 1);
-        } else if (evt === "error") {
-          setMsgs((m) => [...m, { id: "err_" + Date.now(), role: "assistant", content: `Error: ${data.message}`, artifact_key: null, created_at: Date.now() / 1000 }]);
-          setStreaming("");
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        let idx;
+        while ((idx = buf.indexOf("\n\n")) !== -1) {
+          const block = buf.slice(0, idx); buf = buf.slice(idx + 2);
+          const evtLine = block.split("\n").find((l) => l.startsWith("event:"));
+          const dataLine = block.split("\n").find((l) => l.startsWith("data:"));
+          if (!evtLine || !dataLine) continue;
+          const evt = evtLine.slice(6).trim();
+          const data = JSON.parse(dataLine.slice(5).trim());
+          if (evt === "user_message" && !userIdReplaced) {
+            userIdReplaced = true;
+            setMsgs((m) => m.map((x) => x.id === "tmp_u" ? { ...x, id: data.id } : x));
+          } else if (evt === "delta") {
+            assembled += data;
+            setStreaming(assembled);
+          } else if (evt === "done") {
+            setMsgs((m) => [...m, { id: data.id, role: "assistant", content: assembled, artifact_key: data.artifact_id, created_at: Date.now() / 1000 }]);
+            setStreaming("");
+            if (data.artifact_id) setIframeKey((k) => k + 1);
+          } else if (evt === "error") {
+            setMsgs((m) => [...m, { id: "err_" + Date.now(), role: "assistant", content: `Error: ${data.message}`, artifact_key: null, created_at: Date.now() / 1000 }]);
+            setStreaming("");
+          }
         }
       }
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Stream failed");
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
-    router.refresh();
+  }
+
+  async function downloadArtifact() {
+    if (!lastArtifact) return;
+    const res = await fetch(`/api/artifacts/${lastArtifact}`);
+    if (!res.ok) return;
+    const html = await res.text();
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${project.name}-${lastArtifact}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   async function patchProject(body: Partial<Project>) {
@@ -187,6 +209,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
             )}
           </div>
           <div className="border-t rule p-5">
+            {error && <div className="text-[12px] text-red-600 mb-2">{error}</div>}
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -204,18 +227,32 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
         </section>
 
         <section className="col-span-7 bg-paper relative flex flex-col">
-          {lastArtifact ? (
-            <iframe
-              key={`${lastArtifact}-${iframeKey}`}
-              src={`/api/artifacts/${lastArtifact}`}
-              sandbox="allow-same-origin allow-scripts"
-              className="w-full flex-1 bg-white"
-            />
-          ) : (
-            <div className="grid place-items-center flex-1 text-muted text-[14px]">
-              The latest HTML artifact appears here.
+          <div className="border-b rule px-4 h-10 flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <button onClick={() => setPreviewWidth("390px")} className={previewWidth === "390px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>📱</button>
+              <button onClick={() => setPreviewWidth("768px")} className={previewWidth === "768px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>💻</button>
+              <button onClick={() => setPreviewWidth("100%")} className={previewWidth === "100%" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>🖥️</button>
             </div>
-          )}
+            {lastArtifact && (
+              <button onClick={downloadArtifact} className="text-[12px] text-muted hover:text-ink underline underline-offset-4 decoration-rule">
+                Download HTML
+              </button>
+            )}
+          </div>
+          <div className="flex-1 flex justify-center bg-[#f5f5f5]" style={{ transition: "max-width 0.3s ease", maxWidth: previewWidth, margin: "0 auto", width: "100%" }}>
+            {lastArtifact ? (
+              <iframe
+                key={`${lastArtifact}-${iframeKey}`}
+                src={`/api/artifacts/${lastArtifact}`}
+                sandbox="allow-same-origin allow-scripts"
+                className="w-full h-full bg-white"
+              />
+            ) : (
+              <div className="grid place-items-center flex-1 text-muted text-[14px]">
+                The latest HTML artifact appears here.
+              </div>
+            )}
+          </div>
         </section>
       </div>
 

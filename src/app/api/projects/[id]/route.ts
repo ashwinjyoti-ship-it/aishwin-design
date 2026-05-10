@@ -39,6 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     name: string;
     brief: string;
     skill_id: string | null;
+    design_system_id: string | null;
     provider: string;
     model: string;
   }>;

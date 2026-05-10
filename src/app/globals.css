@@ -4,42 +4,81 @@
 
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
+    --bg-primary: #0C0C0C;
+    --bg-secondary: #181818;
+    --bg-tertiary: #222222;
+    --border-subtle: #2A2A28;
+    --accent-primary: #D4943A;
+    --accent-hover: #A6722F;
+    --accent-muted: #A67C52;
+    --accent-highlight: #E5B86A;
+    --text-primary: #E6DFD3;
+    --text-secondary: #B8B0A4;
+    --text-tertiary: #7A756D;
+    --text-dim: #4A4742;
+    --transition-fast: 150ms ease-out;
   }
-  html, body { background: #FAFAF6; color: #171614; }
+
+  html,
   body {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  body {
+    font-family: Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "ss01", "cv11";
   }
-  ::selection { background: #171614; color: #FAFAF6; }
-  input, textarea, button { font: inherit; color: inherit; }
-  textarea { resize: none; }
-  hr { border-color: #E6E2D8; }
-  .rule { border-color: #E6E2D8; }
+
+  ::selection {
+    background: var(--accent-primary);
+    color: var(--bg-primary);
+  }
+
+  input,
+  textarea,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  hr,
+  .rule {
+    border-color: var(--border-subtle);
+  }
 }
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-4 h-10 border border-ink bg-ink text-paper text-sm tracking-tightish transition;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-forge-amber bg-forge-amber px-4 text-sm font-semibold tracking-tightish text-obsidian transition-colors duration-fast;
   }
-  .btn:hover { background: #2a2622; }
+
+  .btn:hover { background: #a6722f; }
+  .btn:focus-visible { @apply outline-none ring-2 ring-forge-amber ring-offset-2 ring-offset-obsidian; }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 h-10 border border-rule bg-paper text-ink text-sm tracking-tightish hover:border-ink transition;
+    @apply inline-flex h-10 items-center justify-center gap-2 rounded-md border border-dim-grey bg-transparent px-4 text-sm text-ash-grey transition-colors duration-fast hover:border-ash-grey hover:text-warm-white;
   }
+
   .field {
-    @apply w-full bg-paper border border-rule px-3 py-2 text-[15px] leading-tight focus:outline-none focus:border-ink transition;
+    @apply w-full rounded-md border border-dim-grey bg-charcoal px-3 py-2 text-[15px] leading-tight text-warm-white transition-colors duration-fast;
   }
+
+  .field:hover { @apply border-ash-grey; }
+  .field:focus { @apply border-2 border-forge-amber outline-none; }
+
   .label {
-    @apply block text-[11px] uppercase tracking-[0.14em] text-muted mb-1.5;
+    @apply mb-1.5 block text-[11px] uppercase tracking-[0.14em] text-muted-cream;
   }
+
   .pill {
-    @apply inline-flex items-center h-6 px-2 border border-rule text-[11px] uppercase tracking-[0.12em] text-muted;
+    @apply inline-flex h-6 items-center rounded-sm border border-[#A67C5233] bg-[#A67C5233] px-2 text-[11px] uppercase tracking-[0.12em] text-copper;
   }
+
   .display {
-    font-family: 'Source Serif 4', 'Source Serif Pro', Georgia, serif;
-    font-feature-settings: "ss01";
     letter-spacing: -0.012em;
+    font-weight: 700;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-interface Row { id: string; name: string; summary: string; preloaded: number; updated_at: number; body?: string }
+interface Row { id: string; name: string; summary: string; body: string; preloaded: number; updated_at: number }
 
 export function SkillsManager({ initial }: { initial: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initial);
@@ -12,10 +12,9 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
 
   useEffect(() => {
     if (!selectedId) { setDraft(null); return; }
-    fetch(`/api/skills/${selectedId}`, { credentials: "include" }).then((r) => r.json() as any).then((j) => {
-      if (j.skill) setDraft({ name: j.skill.name, summary: j.skill.summary, body: j.skill.body });
-    });
-  }, [selectedId]);
+    const row = rows.find((r) => r.id === selectedId);
+    if (row) setDraft({ name: row.name, summary: row.summary, body: row.body });
+  }, [rows, selectedId]);
 
   async function refresh() {
     const r = await fetch("/api/skills", { credentials: "include" }).then((r) => r.json() as any);
@@ -23,16 +22,18 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
   }
 
   async function onNew() {
+    const defaultBody = "# New skill\n\nDescribe sections and guardrails.";
     const res = await fetch("/api/skills", {
       method: "POST",
       credentials: "include",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: "New skill", summary: "", body: "# New skill\n\nDescribe sections and guardrails." }),
+      body: JSON.stringify({ name: "New skill", summary: "", body: defaultBody }),
     });
     const j = await res.json() as any;
     if (res.ok && j.id) {
       await refresh();
       setSelectedId(j.id);
+      setDraft({ name: "New skill", summary: "", body: defaultBody });
     }
   }
 

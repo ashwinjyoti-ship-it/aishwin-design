@@ -455,4 +455,7 @@ Neutral, enabling. No opinion. "Untitled" as default.
 ## Brand anti-patterns
 - No heavy borders
 - No saturated colours in the document canvas
-- No centred body text (always left-aligned)',1);
+- No centred body text (always left-aligned)',1),
+('ds-ink','Ink & Paper','Minimal monochrome system with one accent slot.','## Tokens\n- `--paper: #fafaf9`\n- `--ink: #1c1917`\n- `--accent: #2563eb`\n- `--rule: #e7e5e4`\n- Font: Inter 400/500/600\n- Radius: 4px\n- Shadow: none (use 1px rules)',1),
+('ds-brutal','Brutalist','High-contrast system with thick borders and system fonts.','## Tokens\n- `--paper: #ffffff`\n- `--ink: #000000`\n- `--accent: #ff0000`\n- `--rule: #000000`\n- Font: system-ui, sans-serif\n- Radius: 0px\n- Shadow: none\n- Borders: 2px solid black',1),
+('ds-saas','SaaS Clean','Modern SaaS palette with subtle shadows.','## Tokens\n- `--paper: #ffffff`\n- `--ink: #0f172a`\n- `--accent: #4f46e5`\n- `--rule: #e2e8f0`\n- Font: Inter 400/500/600/700\n- Radius: 8px\n- Shadow: 0 1px 3px rgba(0,0,0,0.1)',1);

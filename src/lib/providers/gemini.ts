@@ -38,7 +38,7 @@ async function* stream({ apiKey, model, system, messages, signal }: StreamArgs) 
 export const gemini: ProviderAdapter = {
   id: "gemini",
   label: "Google Gemini",
-  defaultModel: "gemini-2.5-pro",
-  models: ["gemini-2.5-pro", "gemini-2.5-flash"],
+  defaultModel: "gemini-3-pro",
+  models: ["gemini-3-pro", "gemini-3.1-pro", "gemini-2.5-flash"],
   stream,
 };
