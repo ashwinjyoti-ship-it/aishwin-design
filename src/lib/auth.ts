@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { env } from "./env";
 
 const COOKIE = "aishwin_session";
@@ -53,9 +54,13 @@ export async function clearSessionCookie() {
   jar.delete(COOKIE);
 }
 
-export async function isAuthed(): Promise<boolean> {
-  const jar = await cookies();
-  return verifySession(jar.get(COOKIE)?.value);
+export async function isAuthed(req?: NextRequest): Promise<boolean> {
+  // Prefer reading directly from the request object (reliable in Cloudflare edge
+  // runtime). Fall back to next/headers cookies() for server component contexts.
+  const token = req
+    ? req.cookies.get(COOKIE)?.value
+    : (await cookies()).get(COOKIE)?.value;
+  return verifySession(token);
 }
 
 export const SESSION_COOKIE = COOKIE;

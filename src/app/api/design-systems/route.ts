@@ -5,8 +5,8 @@ import { id as makeId } from "@/lib/id";
 
 export const runtime = "edge";
 
-export async function GET() {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const rows = await db()
     .prepare("SELECT id, name, summary, body, preloaded, updated_at FROM design_systems ORDER BY preloaded DESC, name ASC")
     .all();
@@ -14,7 +14,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { name, summary, body } = (await req.json().catch(() => ({}))) as {
     name?: string; summary?: string; body?: string;
   };

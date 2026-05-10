@@ -15,7 +15,7 @@ export const runtime = "edge";
 interface PostBody { content: string }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return new Response("unauthorized", { status: 401 });
+  if (!(await isAuthed(req))) return new Response("unauthorized", { status: 401 });
   const { id: pid } = await params;
   const { content } = (await req.json().catch(() => ({}))) as PostBody;
   if (!content?.trim()) return new Response("empty", { status: 400 });

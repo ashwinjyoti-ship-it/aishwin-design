@@ -6,7 +6,7 @@ import { r2Get } from "@/lib/r2";
 export const runtime = "edge";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return new Response("unauthorized", { status: 401 });
+  if (!(await isAuthed(_req))) return new Response("unauthorized", { status: 401 });
   const { id } = await params;
   const row = await db()
     .prepare("SELECT r2_key, body_inline, kind FROM artifacts WHERE id = ?")
