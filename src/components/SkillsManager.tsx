@@ -14,7 +14,7 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
     if (!selectedId) { setDraft(null); return; }
     const row = rows.find((r) => r.id === selectedId);
     if (row) setDraft({ name: row.name, summary: row.summary, body: row.body });
-  }, [selectedId]);
+  }, [rows, selectedId]);
 
   async function refresh() {
     const r = await fetch("/api/skills", { credentials: "include" }).then((r) => r.json() as any);
