@@ -1,4 +1,4 @@
-import { db } from "./env";
+import { db, env } from "./env";
 
 export interface ProviderKeys {
   openai?: string; // chat (gpt-5.5 etc.) + image generation (gpt-image-1)
@@ -21,12 +21,22 @@ const DEFAULTS: AppSettings = {
 };
 
 export async function readSettings(): Promise<AppSettings> {
+  // Keys injected via Cloudflare encrypted env vars take effect when no key is
+  // stored in D1 yet (or as a baseline that any UI-saved key overrides).
+  const envKeys: ProviderKeys = {};
+  const e = env();
+  if (e.OPENAI_API_KEY) envKeys.openai = e.OPENAI_API_KEY;
+  if (e.ANTHROPIC_API_KEY) envKeys.anthropic = e.ANTHROPIC_API_KEY;
+  if (e.GEMINI_API_KEY) envKeys.gemini = e.GEMINI_API_KEY;
+
   const row = await db().prepare("SELECT value FROM settings WHERE key = ?").bind("app").first<{ value: string }>();
-  if (!row?.value) return DEFAULTS;
+  if (!row?.value) return { ...DEFAULTS, keys: { ...envKeys } };
   try {
-    return { ...DEFAULTS, ...JSON.parse(row.value) };
+    const stored = JSON.parse(row.value) as AppSettings;
+    // Merge: env keys are the baseline; any key saved via the UI takes precedence
+    return { ...DEFAULTS, ...stored, keys: { ...envKeys, ...(stored.keys ?? {}) } };
   } catch {
-    return DEFAULTS;
+    return { ...DEFAULTS, keys: { ...envKeys } };
   }
 }
 

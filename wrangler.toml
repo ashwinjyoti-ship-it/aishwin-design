@@ -27,3 +27,6 @@ id = "de1437746b5a4a19b054ad06b2362e21"
 # Secrets, set in the Cloudflare dashboard (Pages → aish-design → Settings → Environment variables → Encrypted):
 #   APP_PASSWORD       shared bearer to access the app
 #   SESSION_SECRET     random string used to sign session cookies
+#   OPENAI_API_KEY     optional OpenAI key (baseline; Settings UI value overrides)
+#   ANTHROPIC_API_KEY  optional Anthropic key
+#   GEMINI_API_KEY     optional Google Gemini key
