@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/env";
-import { isAuthed } from "@/lib/auth";
 
 export const runtime = "edge";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed(_req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: pid } = await params;
   const project = await db()
     .prepare("SELECT * FROM projects WHERE id = ?")
@@ -33,7 +31,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: pid } = await params;
   const body = (await req.json().catch(() => ({}))) as Partial<{
     name: string;
@@ -60,7 +57,6 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed(_req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: pid } = await params;
   await db().prepare("DELETE FROM projects WHERE id = ?").bind(pid).run();
   return NextResponse.json({ ok: true });

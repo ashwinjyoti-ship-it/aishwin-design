@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
 import { db, env } from "@/lib/env";
-import { isAuthed } from "@/lib/auth";
 import { id as makeId } from "@/lib/id";
 import { readSettings } from "@/lib/settings";
 import { getProvider } from "@/lib/providers";
@@ -15,7 +14,6 @@ export const runtime = "edge";
 interface PostBody { content: string }
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed(req))) return new Response("unauthorized", { status: 401 });
   const { id: pid } = await params;
   const { content } = (await req.json().catch(() => ({}))) as PostBody;
   if (!content?.trim()) return new Response("empty", { status: 400 });

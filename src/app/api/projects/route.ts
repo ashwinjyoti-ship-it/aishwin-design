@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/env";
-import { isAuthed } from "@/lib/auth";
 import { id } from "@/lib/id";
 import { readSettings } from "@/lib/settings";
 
 export const runtime = "edge";
 
-export async function GET(req: NextRequest) {
-  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET() {
   const rows = await db()
     .prepare("SELECT id, name, brief, skill_id, design_system_id, provider, model, updated_at FROM projects ORDER BY updated_at DESC")
     .all();
@@ -15,7 +13,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     brief?: string;
