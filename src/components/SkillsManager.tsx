@@ -8,6 +8,8 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
   const [rows, setRows] = useState<Row[]>(initial);
   const [selectedId, setSelectedId] = useState<string | null>(initial[0]?.id ?? null);
   const [draft, setDraft] = useState<{ name: string; summary: string; body: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const selected = useMemo(() => rows.find((r) => r.id === selectedId) ?? null, [rows, selectedId]);
 
   useEffect(() => {
@@ -22,18 +24,28 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
   }
 
   async function onNew() {
+    setCreating(true);
+    setError(null);
     const defaultBody = "# New skill\n\nDescribe sections and guardrails.";
-    const res = await fetch("/api/skills", {
-      method: "POST",
-      credentials: "include",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name: "New skill", summary: "", body: defaultBody }),
-    });
-    const j = await res.json() as any;
-    if (res.ok && j.id) {
-      await refresh();
-      setSelectedId(j.id);
-      setDraft({ name: "New skill", summary: "", body: defaultBody });
+    try {
+      const res = await fetch("/api/skills", {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "New skill", summary: "", body: defaultBody }),
+      });
+      const j = await res.json() as any;
+      if (res.ok && j.id) {
+        await refresh();
+        setSelectedId(j.id);
+        setDraft({ name: "New skill", summary: "", body: defaultBody });
+      } else {
+        setError(j.error ?? "Failed to create skill");
+      }
+    } catch {
+      setError("Network error — please try again");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -60,8 +72,11 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
       <aside className="col-span-12 md:col-span-4">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] uppercase tracking-[0.14em] text-muted">All skills</div>
-          <button onClick={onNew} className="text-[12px] tracking-tightish hover:text-ink text-muted">+ New</button>
+          <button onClick={onNew} disabled={creating} className="text-[12px] tracking-tightish hover:text-ink text-muted disabled:opacity-40">
+            {creating ? "Creating…" : "+ New"}
+          </button>
         </div>
+        {error && <div className="mb-3 text-[12px] text-error">{error}</div>}
         <ul className="border-t rule">
           {rows.map((r) => (
             <li key={r.id} className="border-b rule">
