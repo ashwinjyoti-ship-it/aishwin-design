@@ -79,6 +79,7 @@ export function SettingsForm({ providers, initial }: Props) {
     if (Object.keys(keysPatch).length) payload.keys = keysPatch;
     const res = await fetch("/api/settings", {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
