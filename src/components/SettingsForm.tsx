@@ -104,22 +104,13 @@ export function SettingsForm({ providers, initial }: Props) {
         <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-4">API keys</div>
         <ul className="border-t rule">
           {allKeys.map((p) => (
-            <li key={p.id} className="border-b rule py-5 grid grid-cols-12 gap-4 items-center">
-              <div className="col-span-4">
-                <div className="display text-[17px] text-ink">{p.label}</div>
-                <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
-              </div>
-              <div className="col-span-6">
-                <input
-                  type="password"
-                  className="field"
-                  placeholder={keysSet[p.id] ? "•••••••••• set — type to replace" : "Paste API key"}
-                  value={keys[p.id] === "__clear__" ? "" : (keys[p.id] ?? "")}
-                  onChange={(e) => setKey(p.id, e.target.value)}
-                />
-              </div>
-              <div className="col-span-2 text-right">
-                <div className="flex items-center justify-end gap-3">
+            <li key={p.id} className="border-b rule py-4 space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="display text-[16px] text-ink">{p.label}</div>
+                  <div className="text-[12px] text-muted mt-0.5">{p.hint}</div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
                   {pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Pending save</span>}
                   {keysSet[p.id] && !pendingKeyIds.includes(p.id) && <span className="text-[11px] text-muted">Saved</span>}
                   {keysSet[p.id] && (
@@ -129,6 +120,13 @@ export function SettingsForm({ providers, initial }: Props) {
                   )}
                 </div>
               </div>
+              <input
+                type="password"
+                className="field"
+                placeholder={keysSet[p.id] ? "•••••••••• set — type to replace" : "Paste API key"}
+                value={keys[p.id] === "__clear__" ? "" : (keys[p.id] ?? "")}
+                onChange={(e) => setKey(p.id, e.target.value)}
+              />
             </li>
           ))}
         </ul>
