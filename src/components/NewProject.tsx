@@ -46,16 +46,16 @@ export function NewProject({ skills, designSystems }: Props) {
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="label h-[14px] leading-none">Skill</label>
-          <select className="field" value={skill} onChange={(e) => setSkill(e.target.value)}>
+        <div className="flex flex-col">
+          <label className="label h-[14px] leading-[14px]">Skill</label>
+          <select className="field h-[40px] py-0" value={skill} onChange={(e) => setSkill(e.target.value)}>
             <option value="">No skill</option>
             {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
-        <div>
-          <label className="label h-[14px] leading-none">Design system</label>
-          <select className="field" value={ds} onChange={(e) => setDs(e.target.value)}>
+        <div className="flex flex-col">
+          <label className="label h-[14px] leading-[14px]">Design system</label>
+          <select className="field h-[40px] py-0" value={ds} onChange={(e) => setDs(e.target.value)}>
             <option value="">None</option>
             {designSystems.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
