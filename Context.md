@@ -19,3 +19,8 @@
 
 ## Validation
 - `npm run -s build` passed.
+
+
+## Conflict status
+- No merge markers remain (`<<<<<<<`, `=======`, `>>>>>>>`).
+- Working tree is clean and conflict is resolved.
