@@ -47,14 +47,14 @@ export function NewProject({ skills, designSystems }: Props) {
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="label">Skill</label>
+          <label className="label h-[14px] leading-none">Skill</label>
           <select className="field" value={skill} onChange={(e) => setSkill(e.target.value)}>
             <option value="">No skill</option>
             {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         </div>
         <div>
-          <label className="label">Design system</label>
+          <label className="label h-[14px] leading-none">Design system</label>
           <select className="field" value={ds} onChange={(e) => setDs(e.target.value)}>
             <option value="">None</option>
             {designSystems.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
