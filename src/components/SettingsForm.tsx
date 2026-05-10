@@ -22,6 +22,7 @@ export function SettingsForm({ providers, initial }: Props) {
   const [keysSet, setKeysSet] = useState<Record<string, boolean>>(initial.keysSet || {});
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState(false);
 
   const activeModels = providers.find((p) => p.id === defaultProvider)?.models ?? [];
 
@@ -30,6 +31,7 @@ export function SettingsForm({ providers, initial }: Props) {
 
   async function save() {
     setSaving(true);
+    setSaveError(false);
     const payload: Record<string, unknown> = { defaultProvider, defaultModel };
     const keysPatch: Record<string, string | null> = {};
     for (const [k, v] of Object.entries(keys)) {
@@ -39,11 +41,18 @@ export function SettingsForm({ providers, initial }: Props) {
     if (Object.keys(keysPatch).length) payload.keys = keysPatch;
     const res = await fetch("/api/settings", {
       method: "PATCH",
+      credentials: "include",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(payload),
     });
-    const j = await res.json() as any;
-    if (res.ok) { setKeys({}); setKeysSet(j.settings.keysSet); setSavedAt(Date.now()); }
+    if (res.ok) {
+      const j = await res.json() as any;
+      setKeys({});
+      setKeysSet(j.settings.keysSet);
+      setSavedAt(Date.now());
+    } else {
+      setSaveError(true);
+    }
     setSaving(false);
   }
 
@@ -73,7 +82,10 @@ export function SettingsForm({ providers, initial }: Props) {
                 />
               </div>
               <div className="col-span-2 text-right">
-                {keysSet[p.id] && (
+                {keys[p.id] && keys[p.id] !== "__clear__" && (
+                  <span className="text-[12px] text-muted">Pending save</span>
+                )}
+                {!keys[p.id] && keysSet[p.id] && (
                   <button onClick={() => removeKey(p.id)} className="text-[12px] text-muted hover:text-ink">
                     Remove
                   </button>
@@ -104,7 +116,8 @@ export function SettingsForm({ providers, initial }: Props) {
           </div>
           <div className="pt-2 flex items-center gap-3">
             <button onClick={save} className="btn" disabled={saving}>{saving ? "Saving…" : "Save"}</button>
-            {savedAt && <span className="text-[12px] text-muted">saved</span>}
+            {savedAt && !saveError && <span className="text-[12px] text-muted">saved</span>}
+            {saveError && <span className="text-[12px] text-red-400">Could not save. Try again.</span>}
           </div>
           <div className="pt-4 border-t rule">
             <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-3">Storage</div>
