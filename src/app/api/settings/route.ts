@@ -5,8 +5,8 @@ import { PROVIDER_ORDER, PROVIDERS } from "@/lib/providers";
 
 export const runtime = "edge";
 
-export async function GET() {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const s = await readSettings();
   return NextResponse.json({
     settings: publicSettings(s),
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as {
     defaultProvider?: string;
     defaultModel?: string;

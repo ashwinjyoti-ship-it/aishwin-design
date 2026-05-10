@@ -6,8 +6,8 @@ import { readSettings } from "@/lib/settings";
 
 export const runtime = "edge";
 
-export async function GET() {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const rows = await db()
     .prepare("SELECT id, name, brief, skill_id, design_system_id, provider, model, updated_at FROM projects ORDER BY updated_at DESC")
     .all();
@@ -15,7 +15,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
     brief?: string;

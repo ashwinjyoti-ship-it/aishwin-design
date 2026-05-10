@@ -36,9 +36,9 @@ export function DesignSystemsManager({ initial }: { initial: Row[] }) {
       });
       const j = await res.json() as any;
       if (res.ok && j.id) {
-        await refresh();
         setSelectedId(j.id);
         setDraft({ name: "New design system", summary: "", body: defaultBody });
+        refresh(); // sync list in background
       } else {
         setError(j.error ?? "Failed to create design system");
       }

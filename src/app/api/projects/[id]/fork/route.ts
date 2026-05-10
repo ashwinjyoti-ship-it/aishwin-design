@@ -6,7 +6,7 @@ import { id as makeId } from "@/lib/id";
 export const runtime = "edge";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: sourceId } = await params;
 
   const source = await db()

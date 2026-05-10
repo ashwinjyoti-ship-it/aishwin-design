@@ -6,7 +6,7 @@ import { id as makeId } from "@/lib/id";
 export const runtime = "edge";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: pid } = await params;
   const { body, pinned } = (await req.json().catch(() => ({}))) as { body?: string; pinned?: boolean };
   if (!body?.trim()) return NextResponse.json({ error: "empty" }, { status: 400 });
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  if (!(await isAuthed())) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!(await isAuthed(req))) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id: pid } = await params;
   const { mid } = (await req.json().catch(() => ({}))) as { mid?: string };
   if (!mid) return NextResponse.json({ error: "missing mid" }, { status: 400 });
