@@ -67,7 +67,7 @@
   }
 
   .field:hover { @apply border-ash-grey; }
-  .field:focus { @apply border-2 border-forge-amber outline-none; }
+  .field:focus { @apply border border-forge-amber outline-none shadow-[0_0_0_1px_#D4943A]; }
 
   .label {
     @apply mb-1.5 block text-[11px] uppercase tracking-[0.14em] text-muted-cream;
