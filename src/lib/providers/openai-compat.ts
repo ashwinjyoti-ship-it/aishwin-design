@@ -7,14 +7,16 @@ interface CompatConfig {
   baseUrl: string;
   defaultModel: string;
   models: string[];
+  tokenParam?: "max_tokens" | "max_completion_tokens";
 }
 
 function adapterFrom(cfg: CompatConfig): ProviderAdapter {
   async function* stream({ apiKey, model, system, messages, signal }: StreamArgs) {
+    const tokenParam = cfg.tokenParam ?? "max_tokens";
     const payload = {
       model,
       stream: true,
-      max_tokens: 8192,
+      [tokenParam]: 8192,
       messages: [
         ...(system ? [{ role: "system", content: system }] : []),
         ...messages.map((m) => ({ role: m.role, content: m.content })),
@@ -57,6 +59,7 @@ export const openai = adapterFrom({
   baseUrl: "https://api.openai.com/v1",
   defaultModel: "gpt-5.5",
   models: ["gpt-5.5", "gpt-5.4-mini", "o4-mini"],
+  tokenParam: "max_completion_tokens",
 });
 
 export const moonshot = adapterFrom({
