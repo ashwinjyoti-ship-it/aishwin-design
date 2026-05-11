@@ -320,6 +320,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
                     background: "white",
                     transform: `scale(${zoom})`,
                     transformOrigin: zoom > 1 ? "top left" : "top center",
+                    pointerEvents: resizing ? "none" : undefined,
                   }}
                 />
               </div>
