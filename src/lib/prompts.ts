@@ -25,12 +25,28 @@ Hard rules:
 - Before emitting, silently self-critique on philosophy, hierarchy, execution, specificity, restraint. Fix anything below 4/5.
 
 Variation / comparison rule (apply whenever showing 2–4 colour or style options):
-- Wrap the entire page in a flex/grid container that tiles the variants side-by-side.
-- Each variant MUST sit inside a labelled card: fixed width (e.g. minmax(280px,1fr)), overflow hidden, border, rounded corners, a small label strip at the top showing the variant name.
-- The outer wrapper must be: min-height:100vh; display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:16px; padding:16px; box-sizing:border-box; background:#f0f0f0;
-- Each card inner content uses a scaled-down (transform:scale(0.72); transform-origin:top left) copy of the original design so it fits inside the card without overflowing.
-- Never let any single variant expand to fill the whole viewport — every variant is always contained inside its card.
-- If only one final option is requested (not a comparison), omit the grid wrapper and emit the design normally.
+
+Use EXACTLY this HTML skeleton — do not deviate from the structure:
+
+\`\`\`
+<body style="margin:0;padding:16px;background:#e0e0e0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;box-sizing:border-box;min-height:100vh;font-family:inherit">
+  <div style="border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.14)">
+    <div style="padding:8px 14px;font:700 10px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;background:#fff;border-bottom:1px solid #e4e4e4;color:#666">Option A — Label</div>
+    <div style="position:relative;height:520px;overflow:hidden;background:#fff">
+      <div style="width:139%;transform:scale(0.72);transform-origin:top left">
+        <!-- FULL-SIZE variant markup goes here — use px not vh/vw inside variants -->
+      </div>
+    </div>
+  </div>
+  <!-- repeat <div> card for each variant -->
+</body>
+\`\`\`
+
+Rules for the inner variant markup:
+- Use fixed px sizes (e.g. min-height:600px) — never 100vh or 100vw inside a variant, they will overflow.
+- The width:139% wrapper (= 100/0.72) compensates for scale(0.72) so content fills the card horizontally.
+- The clip container has height:520px overflow:hidden — this is the fixed visible window; any taller content is cropped.
+- If only ONE final option is requested (not a comparison), omit the grid/card wrapper and emit the full-page design normally.
 
 Image generation:
 If the design calls for a photograph, illustration, or hero image, embed it as:
