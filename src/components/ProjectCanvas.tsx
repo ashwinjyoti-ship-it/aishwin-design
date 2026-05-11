@@ -33,12 +33,15 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [showMemory, setShowMemory] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [previewWidth, setPreviewWidth] = useState<"390px" | "768px" | "100%">("100%");
+  const [zoom, setZoom] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [streamCollapsed, setStreamCollapsed] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const codeBoxRef = useRef<HTMLDivElement>(null);
 
   const lastArtifact = [...msgs].reverse().find((m) => m.artifact_key)?.artifact_key ?? null;
+  const changeZoom = (delta: number) =>
+    setZoom((z) => Math.round(Math.min(2, Math.max(0.25, z + delta)) * 100) / 100);
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
@@ -258,22 +261,42 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
               <button onClick={() => setPreviewWidth("768px")} className={previewWidth === "768px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>💻</button>
               <button onClick={() => setPreviewWidth("100%")} className={previewWidth === "100%" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>🖥️</button>
             </div>
+            <div className="flex items-center gap-1 ml-2 pl-2 border-l rule">
+              <button onClick={() => changeZoom(-0.25)} disabled={zoom <= 0.25} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink disabled:opacity-30">−</button>
+              <button onClick={() => setZoom(1)} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink tabular-nums w-[42px] text-center">{Math.round(zoom * 100)}%</button>
+              <button onClick={() => changeZoom(0.25)} disabled={zoom >= 2} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink disabled:opacity-30">+</button>
+            </div>
             {lastArtifact && (
               <button onClick={downloadArtifact} className="text-[12px] text-muted hover:text-ink underline underline-offset-4 decoration-rule">
                 Download HTML
               </button>
             )}
           </div>
-          <div className="flex-1 flex justify-center bg-[#f5f5f5]" style={{ transition: "max-width 0.3s ease", maxWidth: previewWidth, margin: "0 auto", width: "100%" }}>
+          <div className="flex-1 overflow-auto bg-[#f5f5f5]" style={{ maxWidth: previewWidth, margin: "0 auto", width: "100%", transition: "max-width 0.3s ease" }}>
             {lastArtifact ? (
-              <iframe
-                key={`${lastArtifact}-${iframeKey}`}
-                src={`/api/artifacts/${lastArtifact}`}
-                sandbox="allow-same-origin allow-scripts"
-                className="w-full h-full bg-white"
-              />
+              <div style={{
+                width: zoom > 1 ? `${zoom * 100}%` : "100%",
+                height: zoom > 1 ? `${zoom * 100}%` : "100%",
+                minWidth: "100%",
+                minHeight: "100%",
+                position: "relative",
+              }}>
+                <iframe
+                  key={`${lastArtifact}-${iframeKey}`}
+                  src={`/api/artifacts/${lastArtifact}`}
+                  sandbox="allow-same-origin allow-scripts"
+                  style={{
+                    display: "block",
+                    width: zoom > 1 ? `${(1 / zoom) * 100}%` : "100%",
+                    height: zoom > 1 ? `${(1 / zoom) * 100}%` : "100%",
+                    background: "white",
+                    transform: `scale(${zoom})`,
+                    transformOrigin: zoom > 1 ? "top left" : "top center",
+                  }}
+                />
+              </div>
             ) : (
-              <div className="grid place-items-center flex-1 text-muted text-[14px]">
+              <div className="grid place-items-center w-full h-full text-muted text-[14px]">
                 The latest HTML artifact appears here.
               </div>
             )}
