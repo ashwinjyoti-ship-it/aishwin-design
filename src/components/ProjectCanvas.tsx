@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Project {
@@ -36,8 +36,25 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [zoom, setZoom] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [streamCollapsed, setStreamCollapsed] = useState(false);
+  const [splitPct, setSplitPct] = useState(42); // left panel width %
+  const isDragging = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const codeBoxRef = useRef<HTMLDivElement>(null);
+
+  const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isDragging.current = true;
+    const onMove = (ev: MouseEvent) => {
+      if (!isDragging.current || !containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const pct = ((ev.clientX - rect.left) / rect.width) * 100;
+      setSplitPct(Math.min(75, Math.max(25, pct)));
+    };
+    const onUp = () => { isDragging.current = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, []);
 
   const lastArtifact = [...msgs].reverse().find((m) => m.artifact_key)?.artifact_key ?? null;
   const changeZoom = (delta: number) =>
@@ -162,7 +179,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const activeProviderModels = providers.find((p) => p.id === project.provider)?.models ?? [];
 
   return (
-    <div className="-mt-12 -mx-8">
+    <div className="-mt-8 -mx-8">
       <div className="border-b rule">
         <div className="mx-auto max-w-[1280px] px-8 h-12 flex items-center gap-3 overflow-x-auto">
           <button onClick={() => history.back()} className="text-[12px] text-muted hover:text-ink shrink-0">&larr;</button>
@@ -205,8 +222,8 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
         </div>
       </div>
 
-      <div className="grid grid-cols-12 h-[calc(100dvh-(56px+48px))]">
-        <section className="col-span-5 border-r rule flex flex-col">
+      <div ref={containerRef} className="flex h-[calc(100dvh-48px)]">
+        <section className="border-r rule flex flex-col shrink-0 overflow-hidden" style={{ width: `${splitPct}%` }}>
           <div ref={scrollerRef} className="flex-1 overflow-y-auto px-8 py-8 space-y-7">
             {msgs.length === 0 && (
               <div className="text-muted text-[14px] max-w-[36ch] leading-relaxed">
@@ -254,7 +271,14 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
           </div>
         </section>
 
-        <section className="col-span-7 bg-paper relative flex flex-col">
+        {/* Resizable divider */}
+        <div
+          onMouseDown={onDividerMouseDown}
+          className="w-1 shrink-0 cursor-col-resize bg-rule hover:bg-ink/20 active:bg-ink/30 transition-colors"
+          style={{ userSelect: "none" }}
+        />
+
+        <section className="flex-1 bg-paper relative flex flex-col min-w-0">
           <div className="border-b rule px-4 h-10 flex items-center justify-between">
             <div className="flex items-center gap-1">
               <button onClick={() => setPreviewWidth("390px")} className={previewWidth === "390px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>📱</button>
