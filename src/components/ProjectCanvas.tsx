@@ -37,21 +37,25 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [error, setError] = useState<string | null>(null);
   const [streamCollapsed, setStreamCollapsed] = useState(false);
   const [splitPct, setSplitPct] = useState(42); // left panel width %
-  const isDragging = useRef(false);
+  const [resizing, setResizing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
   const codeBoxRef = useRef<HTMLDivElement>(null);
 
   const onDividerMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    isDragging.current = true;
+    setResizing(true);
     const onMove = (ev: MouseEvent) => {
-      if (!isDragging.current || !containerRef.current) return;
+      if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const pct = ((ev.clientX - rect.left) / rect.width) * 100;
       setSplitPct(Math.min(75, Math.max(25, pct)));
     };
-    const onUp = () => { isDragging.current = false; window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+    const onUp = () => {
+      setResizing(false);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   }, []);
@@ -222,7 +226,8 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
         </div>
       </div>
 
-      <div ref={containerRef} className="flex h-[calc(100dvh-48px)]">
+      <div ref={containerRef} className="flex h-[calc(100dvh-48px)] relative">
+        {resizing && <div className="absolute inset-0 z-50 cursor-col-resize" />}
         <section className="border-r rule flex flex-col shrink-0 overflow-hidden" style={{ width: `${splitPct}%` }}>
           <div ref={scrollerRef} className="flex-1 overflow-y-auto px-8 py-8 space-y-7">
             {msgs.length === 0 && (
