@@ -10,6 +10,9 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
   const [draft, setDraft] = useState<{ name: string; summary: string; body: string } | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [wizard, setWizard] = useState({ name: "", goal: "", audience: "", inputs: "", outputs: "", constraints: "", style: "", askBeforeRisky: true });
   const selected = useMemo(() => rows.find((r) => r.id === selectedId) ?? null, [rows, selectedId]);
 
   useEffect(() => {
@@ -49,6 +52,28 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
     }
   }
 
+
+
+  async function onGenerate() {
+    setGenerating(true);
+    setError(null);
+    try {
+      const gen = await fetch("/api/skills/generate", { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body: JSON.stringify(wizard) });
+      const gj = await gen.json() as any;
+      if (!gen.ok) throw new Error(gj.error || "Failed to generate");
+      const res = await fetch("/api/skills", { method: "POST", credentials: "include", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: wizard.name || "New skill", summary: gj.summary || "", body: gj.body || "" }) });
+      const j = await res.json() as any;
+      if (!res.ok || !j.id) throw new Error(j.error || "Failed to save");
+      setWizardOpen(false);
+      setSelectedId(j.id);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   async function onSave() {
     if (!selected || !draft) return;
     await fetch(`/api/skills/${selected.id}`, {
@@ -72,9 +97,7 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
       <aside className="col-span-12 md:col-span-4">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] uppercase tracking-[0.14em] text-muted">All skills</div>
-          <button onClick={onNew} disabled={creating} className="text-[12px] tracking-tightish hover:text-ink text-muted disabled:opacity-40">
-            {creating ? "Creating…" : "+ New"}
-          </button>
+          <button onClick={() => setWizardOpen(true)} className="text-[12px] tracking-tightish hover:text-ink text-muted disabled:opacity-40">+ New</button>
         </div>
         {error && <div className="mb-3 text-[12px] text-error">{error}</div>}
         <ul className="border-t rule">
@@ -129,6 +152,26 @@ export function SkillsManager({ initial }: { initial: Row[] }) {
           </div>
         )}
       </section>
+
+      {wizardOpen && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+          <div className="bg-paper border rule w-full max-w-2xl p-5 space-y-3">
+            <div className="display text-[18px]">New Skill Wizard</div>
+            <input className="field" placeholder="Skill name" value={wizard.name} onChange={(e)=>setWizard({...wizard,name:e.target.value})} />
+            <textarea className="field" placeholder="Goal" value={wizard.goal} onChange={(e)=>setWizard({...wizard,goal:e.target.value})} />
+            <textarea className="field" placeholder="Audience" value={wizard.audience} onChange={(e)=>setWizard({...wizard,audience:e.target.value})} />
+            <textarea className="field" placeholder="Inputs" value={wizard.inputs} onChange={(e)=>setWizard({...wizard,inputs:e.target.value})} />
+            <textarea className="field" placeholder="Outputs" value={wizard.outputs} onChange={(e)=>setWizard({...wizard,outputs:e.target.value})} />
+            <textarea className="field" placeholder="Constraints" value={wizard.constraints} onChange={(e)=>setWizard({...wizard,constraints:e.target.value})} />
+            <input className="field" placeholder="Style" value={wizard.style} onChange={(e)=>setWizard({...wizard,style:e.target.value})} />
+            <label className="text-[12px] text-muted"><input type="checkbox" checked={wizard.askBeforeRisky} onChange={(e)=>setWizard({...wizard,askBeforeRisky:e.target.checked})} /> Ask before risky actions</label>
+            <div className="flex justify-end gap-2">
+              <button className="btn-ghost h-8 px-3 text-[12px]" onClick={()=>setWizardOpen(false)}>Cancel</button>
+              <button className="btn-ghost h-8 px-3 text-[12px]" disabled={generating} onClick={onGenerate}>{generating?"Generating…":"Generate + Save"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
