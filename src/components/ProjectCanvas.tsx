@@ -169,7 +169,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
           <input
             defaultValue={project.name}
             onBlur={(e) => e.target.value !== project.name && patchProject({ name: e.target.value })}
-            className="display text-[17px] bg-transparent outline-none focus:underline underline-offset-4 decoration-rule min-w-0 shrink-0"
+            className="display text-[17px] bg-transparent outline-none focus:underline underline-offset-4 decoration-rule min-w-0 max-w-[180px] truncate"
           />
           <span className="text-muted text-[12px] shrink-0">/</span>
 
@@ -260,8 +260,7 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
               <button onClick={() => setPreviewWidth("390px")} className={previewWidth === "390px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>📱</button>
               <button onClick={() => setPreviewWidth("768px")} className={previewWidth === "768px" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>💻</button>
               <button onClick={() => setPreviewWidth("100%")} className={previewWidth === "100%" ? "text-[12px] px-2 py-1 rounded bg-ink text-paper" : "text-[12px] px-2 py-1 rounded text-muted hover:text-ink"}>🖥️</button>
-            </div>
-            <div className="flex items-center gap-1 ml-2 pl-2 border-l rule">
+              <span className="w-px h-4 bg-current opacity-10 mx-1 shrink-0" />
               <button onClick={() => changeZoom(-0.25)} disabled={zoom <= 0.25} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink disabled:opacity-30">−</button>
               <button onClick={() => setZoom(1)} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink tabular-nums w-[42px] text-center">{Math.round(zoom * 100)}%</button>
               <button onClick={() => changeZoom(0.25)} disabled={zoom >= 2} className="text-[12px] px-2 py-1 rounded text-muted hover:text-ink disabled:opacity-30">+</button>

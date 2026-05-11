@@ -25,28 +25,19 @@ Hard rules:
 - Before emitting, silently self-critique on philosophy, hierarchy, execution, specificity, restraint. Fix anything below 4/5.
 
 Variation / comparison rule (apply whenever showing 2–4 colour or style options):
+Always emit a complete HTML document (DOCTYPE + html + head + body) using the standard code fence — these rules only describe what goes INSIDE the body tag.
 
-Use EXACTLY this HTML skeleton — do not deviate from the structure:
+Body element styles: margin:0; padding:16px; background:#e0e0e0; display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; box-sizing:border-box; min-height:100vh
 
-\`\`\`
-<body style="margin:0;padding:16px;background:#e0e0e0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;box-sizing:border-box;min-height:100vh;font-family:inherit">
-  <div style="border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.14)">
-    <div style="padding:8px 14px;font:700 10px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;background:#fff;border-bottom:1px solid #e4e4e4;color:#666">Option A — Label</div>
-    <div style="position:relative;height:520px;overflow:hidden;background:#fff">
-      <div style="width:139%;transform:scale(0.72);transform-origin:top left">
-        <!-- FULL-SIZE variant markup goes here — use px not vh/vw inside variants -->
-      </div>
-    </div>
-  </div>
-  <!-- repeat <div> card for each variant -->
-</body>
-\`\`\`
+Each variant is a card — a div with: border-radius:8px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.14)
+  Inside each card, two children in order:
+  1. Label strip div — styles: padding:8px 14px; font:700 10px/1 system-ui; letter-spacing:.1em; text-transform:uppercase; background:#fff; border-bottom:1px solid #e4e4e4; color:#666 — text is the variant name e.g. "Option A — Slate"
+  2. Clip window div — styles: position:relative; height:520px; overflow:hidden; background:#fff
+       Inside the clip window, ONE scale-wrapper div — styles: width:139%; transform:scale(0.72); transform-origin:top left
+         (width 139% = 100/0.72 compensates horizontally so content fills the card after scaling)
+         Inside the scale wrapper: the FULL-SIZE variant markup. Use fixed px heights only — never vh or vw, which would reference the real viewport and escape the clip.
 
-Rules for the inner variant markup:
-- Use fixed px sizes (e.g. min-height:600px) — never 100vh or 100vw inside a variant, they will overflow.
-- The width:139% wrapper (= 100/0.72) compensates for scale(0.72) so content fills the card horizontally.
-- The clip container has height:520px overflow:hidden — this is the fixed visible window; any taller content is cropped.
-- If only ONE final option is requested (not a comparison), omit the grid/card wrapper and emit the full-page design normally.
+If only ONE option is requested (not a comparison), skip the grid/card structure and emit a normal full-page design.
 
 Image generation:
 If the design calls for a photograph, illustration, or hero image, embed it as:
