@@ -34,13 +34,19 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
   const [iframeKey, setIframeKey] = useState(0);
   const [previewWidth, setPreviewWidth] = useState<"390px" | "768px" | "100%">("100%");
   const [error, setError] = useState<string | null>(null);
+  const [streamCollapsed, setStreamCollapsed] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const codeBoxRef = useRef<HTMLDivElement>(null);
 
   const lastArtifact = [...msgs].reverse().find((m) => m.artifact_key)?.artifact_key ?? null;
 
   useEffect(() => {
     scrollerRef.current?.scrollTo({ top: scrollerRef.current.scrollHeight, behavior: "smooth" });
   }, [msgs.length, streaming]);
+
+  useEffect(() => {
+    if (!streamCollapsed) codeBoxRef.current?.scrollTo({ top: codeBoxRef.current.scrollHeight });
+  }, [streaming, streamCollapsed]);
 
   async function send() {
     const content = input.trim();
@@ -207,8 +213,23 @@ export function ProjectCanvas({ project, messages: initialMsgs, memory: initialM
             {msgs.map((m) => <MessageView key={m.id} m={m} />)}
             {streaming && (
               <div>
-                <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-2">Assistant</div>
-                <div className="text-[14.5px] leading-[1.65] whitespace-pre-wrap font-mono text-ink/90">{streaming}</div>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-muted mb-2 flex items-center justify-between">
+                  <span>Assistant</span>
+                  <button
+                    onClick={() => setStreamCollapsed((c) => !c)}
+                    className="text-[11px] text-muted hover:text-ink"
+                  >
+                    {streamCollapsed ? "Expand ↓" : "Collapse ↑"}
+                  </button>
+                </div>
+                {!streamCollapsed && (
+                  <div
+                    ref={codeBoxRef}
+                    className="max-h-[260px] overflow-y-auto rounded border rule bg-ink/[0.03] p-3 text-[13px] leading-[1.6] whitespace-pre-wrap font-mono text-ink/80"
+                  >
+                    {streaming}
+                  </div>
+                )}
               </div>
             )}
           </div>
